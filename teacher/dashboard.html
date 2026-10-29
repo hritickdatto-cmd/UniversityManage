@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Dashboard | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title" id="teacherGreeting">Welcome, Professor</h1>
+                        <p class="page-description" id="teacherSubtitle">Department of Computer Science & Engineering &bull; Employee ID: FAC-101</p>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <a href="attendance.html" class="btn btn-primary btn-sm">📅 Take Daily Roll Call</a>
+                        <a href="assignments.html" class="btn btn-outline btn-sm">📁 Post Assignment</a>
+                    </div>
+                </div>
+
+                
+                <div class="stats-cards-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Assigned Courses</h4>
+                            <div class="stat-card-value" id="statAssignedCourses">2</div>
+                            <div class="stat-card-meta">Fall 2026 Academic Term</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--primary-soft); color: var(--primary);">📚</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Total Enrolled Students</h4>
+                            <div class="stat-card-value" id="statTotalStudents">70</div>
+                            <div class="stat-card-meta">Across All Instructed Sections</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--secondary-soft); color: var(--secondary);">👥</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Today's Lectures</h4>
+                            <div class="stat-card-value" id="statTodayLectures">2</div>
+                            <div class="stat-card-meta">Lab & Lecture Sessions</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--info-soft); color: var(--info);">⏰</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Pending Assessments</h4>
+                            <div class="stat-card-value" id="statPendingGrading" style="color: var(--warning);">1</div>
+                            <div class="stat-card-meta">Midterm Term Submissions</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--warning-soft); color: var(--warning);">📝</div>
+                    </div>
+                </div>
+
+                
+                <div style="display: grid; grid-template-columns: 1.35fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                    
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-header">
+                            <h2 class="card-title">Today's Lecture Schedule</h2>
+                            <a href="attendance.html" class="btn btn-outline btn-sm">Mark Roll Call</a>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Time Slot</th>
+                                            <th>Course Code & Title</th>
+                                            <th>Section</th>
+                                            <th>Venue</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="todayLecturesTbody">
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-header">
+                            <h2 class="card-title">Faculty Action Items</h2>
+                            <span class="badge badge-warning">2 Required</span>
+                        </div>
+                        <div class="card-body">
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <div style="border-left: 3px solid var(--warning); padding-left: 0.85rem;">
+                                    <div style="font-size: 0.9rem; font-weight: 700;">Submit Midterm Marks for CSE-301</div>
+                                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">Office of Registrar requests marks entry prior to Friday 5:00 PM.</p>
+                                    <a href="results.html?course=CSE-301" class="btn btn-outline btn-sm" style="margin-top: 0.5rem;">Open Gradebook &rarr;</a>
+                                </div>
+
+                                <div style="border-left: 3px solid var(--info); padding-left: 0.85rem;">
+                                    <div style="font-size: 0.9rem; font-weight: 700;">Review Assignment 1 Submissions</div>
+                                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">32 of 36 students have submitted ER modeling problem sets.</p>
+                                    <a href="assignments.html" class="btn btn-outline btn-sm" style="margin-top: 0.5rem;">Review Submissions &rarr;</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Instructional Courses Overview</h2>
+                        <a href="courses.html" class="btn btn-outline btn-sm">Full Course Details</a>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Title</th>
+                                        <th>Credits</th>
+                                        <th>Section</th>
+                                        <th>Enrolled</th>
+                                        <th>Timings</th>
+                                        <th>Classroom</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="assignedCoursesTbody">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/teachers.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = TeacherPortal.init('dashboard', 'Dashboard');
+            if (!ctx) return;
+            const {
+                teacher
+            } = ctx;
+
+            // 1. Populate Greeting
+            document.getElementById('teacherGreeting').textContent = `Welcome back, ${teacher.name}`;
+            document.getElementById('teacherSubtitle').textContent = `${teacher.designation} &bull; ${teacher.department} &bull; Room: ${teacher.room}`;
+
+            // 2. Metrics & Assigned Courses
+            const assigned = TeacherPortal.getTeacherCourses(teacher.id);
+            document.getElementById('statAssignedCourses').textContent = assigned.length;
+
+            const totalEnrolled = assigned.reduce((acc, c) => acc + (c.enrolled || 0), 0);
+            document.getElementById('statTotalStudents').textContent = totalEnrolled;
+
+            // 3. Render Today's Lectures from routine
+            const allRoutines = UMSStorage.getData('routine');
+            const teacherRoutines = allRoutines.filter(r => r.teacher === teacher.name || assigned.some(c => c.code === r.course));
+            document.getElementById('statTodayLectures').textContent = teacherRoutines.length;
+
+            const todayTbody = document.getElementById('todayLecturesTbody');
+            if (teacherRoutines.length > 0) {
+                todayTbody.innerHTML = teacherRoutines.map(r => `
+          <tr>
+            <td><span class="badge badge-neutral">${r.time}</span></td>
+            <td><strong>${r.course}</strong></td>
+            <td>Sec ${r.section}</td>
+            <td><span class="badge badge-info">${r.room}</span></td>
+            <td>
+              <a href="attendance.html?course=${r.course}&section=${r.section}" class="btn btn-primary btn-sm">Roll Call</a>
+            </td>
+          </tr>
+        `).join('');
+            } else {
+                todayTbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding: 1.5rem;">No lectures scheduled on today's agenda.</td></tr>`;
+            }
+
+            // 4. Render Instructional Courses Table
+            const coursesTbody = document.getElementById('assignedCoursesTbody');
+            if (assigned.length > 0) {
+                coursesTbody.innerHTML = assigned.map(c => `
+          <tr>
+            <td><strong>${c.code}</strong></td>
+            <td>${c.title}</td>
+            <td><span class="badge badge-neutral">${c.credits.toFixed(1)} CR</span></td>
+            <td>Sec ${c.section}</td>
+            <td><strong>${c.enrolled}</strong> / ${c.capacity}</td>
+            <td>${c.schedule}</td>
+            <td>${c.room}</td>
+            <td>
+              <div style="display: flex; gap: 0.4rem;">
+                <a href="students.html?course=${c.id}" class="btn btn-outline btn-sm" title="View Enrolled Students">👥</a>
+                <a href="attendance.html?course=${c.id}&section=${c.section}" class="btn btn-outline btn-sm" title="Take Attendance">📅</a>
+                <a href="results.html?course=${c.id}" class="btn btn-outline btn-sm" title="Grade Students">📝</a>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+            } else {
+                coursesTbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 2rem;">No courses currently assigned to this faculty member.</td></tr>`;
+            }
+        });
+    </script>
+</body>
+
+</html>

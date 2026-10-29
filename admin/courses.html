@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curriculum & Courses | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Curriculum & Course Management</h1>
+                        <p class="page-description">Maintain institutional course syllabi, section capacities, and professor assignments</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openCourseModal()">
+            <span>➕ Add New Course</span>
+          </button>
+                </div>
+
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Curriculum Course Catalog</h2>
+                        <input type="text" id="courseSearchInput" class="form-control" placeholder="Search by course code or title..." style="width: 260px;">
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Course Title</th>
+                                        <th>Credits</th>
+                                        <th>Department</th>
+                                        <th>Term</th>
+                                        <th>Section</th>
+                                        <th>Assigned Faculty</th>
+                                        <th>Venue</th>
+                                        <th>Enrollment</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminCoursesTbody">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="courseModal">
+        <div class="modal-dialog" style="max-width: 620px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="courseModalTitle">Add Course to Catalog</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="courseForm">
+                <input type="hidden" id="courseEditId">
+                <div class="modal-body">
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="cCode">Course Code <span class="required">*</span></label>
+                            <input type="text" id="cCode" class="form-control" required placeholder="e.g. CSE-401">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="cTitle">Course Title <span class="required">*</span></label>
+                            <input type="text" id="cTitle" class="form-control" required placeholder="Distributed Systems">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="cCredits">Credits <span class="required">*</span></label>
+                            <input type="number" id="cCredits" class="form-control" required value="3.0" step="0.5" min="1" max="6">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="cDept">Department <span class="required">*</span></label>
+                            <select id="cDept" class="form-control" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="cSemester">Semester <span class="required">*</span></label>
+                            <input type="text" id="cSemester" class="form-control" required value="5th">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="cTeacher">Assigned Faculty <span class="required">*</span></label>
+                            <select id="cTeacher" class="form-control" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="cSection">Section <span class="required">*</span></label>
+                            <input type="text" id="cSection" class="form-control" required value="A">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="cRoom">Room <span class="required">*</span></label>
+                            <input type="text" id="cRoom" class="form-control" required value="Room-201">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="cCapacity">Seat Capacity <span class="required">*</span></label>
+                            <input type="number" id="cCapacity" class="form-control" required value="40" min="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="cSchedule">Schedule</label>
+                            <input type="text" id="cSchedule" class="form-control" value="Mon / Wed 10:00 AM - 11:30 AM">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="UMSApp.closeModal('courseModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Save Course</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AdminPortal.init('courses', 'Courses & Catalog');
+
+            // Populate department and faculty selects
+            const depts = UMSStorage.getData('departments');
+            const teachers = UMSStorage.getData('teachers');
+
+            const deptSelect = document.getElementById('cDept');
+            depts.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.code;
+                opt.textContent = `${d.name} (${d.code})`;
+                deptSelect.appendChild(opt);
+            });
+
+            const teacherSelect = document.getElementById('cTeacher');
+            teachers.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = `${t.name} (${t.department})`;
+                teacherSelect.appendChild(opt);
+            });
+
+            renderCourses();
+            document.getElementById('courseSearchInput').addEventListener('input', renderCourses);
+            document.getElementById('courseForm').addEventListener('submit', handleSaveCourse);
+        });
+
+        function renderCourses() {
+            const courses = UMSStorage.getData('courses');
+            const search = document.getElementById('courseSearchInput').value.toLowerCase();
+            const tbody = document.getElementById('adminCoursesTbody');
+
+            const filtered = courses.filter(c => c.code.toLowerCase().includes(search) || c.title.toLowerCase().includes(search));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center" style="padding: 2.5rem;">No courses found matching catalog search.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(c => `
+        <tr>
+          <td><strong>${c.code}</strong></td>
+          <td>${c.title}</td>
+          <td><span class="badge badge-neutral">${c.credits.toFixed(1)} CR</span></td>
+          <td>${c.department}</td>
+          <td>${c.semester}</td>
+          <td>Sec ${c.section}</td>
+          <td>${c.teacherName}</td>
+          <td><span class="badge badge-info">${c.room}</span></td>
+          <td><strong>${c.enrolled}</strong> / ${c.capacity}</td>
+          <td>
+            <div style="display: flex; gap: 0.35rem;">
+              <button class="btn btn-outline btn-sm" onclick="editCourse('${c.id}')">✏️</button>
+              <button class="btn btn-outline btn-sm text-danger" onclick="deleteCourse('${c.id}')" style="color: var(--danger); border-color: var(--danger);">🗑️</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+        }
+
+        function openCourseModal() {
+            document.getElementById('courseModalTitle').textContent = 'Add Course to Catalog';
+            document.getElementById('courseEditId').value = '';
+            document.getElementById('cCode').value = '';
+            document.getElementById('cCode').readOnly = false;
+            document.getElementById('cTitle').value = '';
+            document.getElementById('cCredits').value = '3.0';
+            document.getElementById('cSemester').value = '5th';
+            document.getElementById('cSection').value = 'A';
+            document.getElementById('cRoom').value = 'Room-201';
+            document.getElementById('cCapacity').value = '40';
+            document.getElementById('cSchedule').value = 'Mon / Wed 10:00 AM - 11:30 AM';
+            UMSApp.openModal('courseModal');
+        }
+
+        function editCourse(id) {
+            const c = UMSStorage.findData('courses', item => item.id === id);
+            if (!c) return;
+
+            document.getElementById('courseModalTitle').textContent = 'Modify Course';
+            document.getElementById('courseEditId').value = c.id;
+            document.getElementById('cCode').value = c.code;
+            document.getElementById('cCode').readOnly = true;
+            document.getElementById('cTitle').value = c.title;
+            document.getElementById('cCredits').value = c.credits;
+            document.getElementById('cDept').value = c.department;
+            document.getElementById('cSemester').value = c.semester;
+            document.getElementById('cTeacher').value = c.teacherId;
+            document.getElementById('cSection').value = c.section;
+            document.getElementById('cRoom').value = c.room;
+            document.getElementById('cCapacity').value = c.capacity;
+            document.getElementById('cSchedule').value = c.schedule;
+
+            UMSApp.openModal('courseModal');
+        }
+
+        function handleSaveCourse(e) {
+            e.preventDefault();
+            const editId = document.getElementById('courseEditId').value;
+            const code = document.getElementById('cCode').value.trim().toUpperCase();
+            const title = document.getElementById('cTitle').value.trim();
+            const credits = parseFloat(document.getElementById('cCredits').value);
+            const department = document.getElementById('cDept').value;
+            const semester = document.getElementById('cSemester').value.trim();
+            const teacherId = document.getElementById('cTeacher').value;
+            const section = document.getElementById('cSection').value.trim();
+            const room = document.getElementById('cRoom').value.trim();
+            const capacity = parseInt(document.getElementById('cCapacity').value, 10);
+            const schedule = document.getElementById('cSchedule').value.trim();
+
+            const teacher = UMSStorage.findData('teachers', t => t.id === teacherId);
+            const teacherName = teacher ? teacher.name : 'Unassigned';
+
+            if (editId) {
+                UMSStorage.updateData('courses', editId, {
+                    title,
+                    credits,
+                    department,
+                    semester,
+                    teacherId,
+                    teacherName,
+                    section,
+                    room,
+                    capacity,
+                    schedule
+                });
+                UMSApp.toast('Course record updated.', 'success');
+            } else {
+                const newCourse = {
+                    id: code,
+                    code,
+                    title,
+                    credits,
+                    department,
+                    semester,
+                    teacherId,
+                    teacherName,
+                    section,
+                    room,
+                    capacity,
+                    enrolled: 0,
+                    schedule
+                };
+                UMSStorage.addData('courses', newCourse);
+                UMSApp.toast('Course added to catalog.', 'success');
+            }
+
+            UMSApp.closeModal('courseModal');
+            renderCourses();
+        }
+
+        function deleteCourse(id) {
+            if (!confirm(`Are you sure you want to delete course ${id}?`)) return;
+            UMSStorage.deleteData('courses', id);
+            UMSApp.toast('Course deleted.', 'warning');
+            renderCourses();
+        }
+    </script>
+</body>
+
+</html>

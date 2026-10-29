@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examination Schedule | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Midterm Examination Schedule</h1>
+                        <p class="page-description">Semester Fall 2026 &bull; Office of the Controller of Examinations</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openAdmitCard()">
+            <span>🎟️ Print Examination Admit Card</span>
+          </button>
+                </div>
+
+                
+                <div class="card" style="background: linear-gradient(135deg, var(--bg-surface) 0%, var(--primary-soft) 100%);">
+                    <div class="card-body" style="text-align: center; padding: 2rem;">
+                        <span class="badge badge-danger" style="margin-bottom: 0.5rem;">Commencing In</span>
+                        <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.25rem;">CSE-301: Database Management Systems Midterm</h2>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Date: October 20, 2026 &bull; Hall A, Room 301 &bull; Allocated Seat: A-24</p>
+
+                        <div id="countdownWidget"></div>
+                    </div>
+                </div>
+
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Enrolled Courses Examination Routine</h2>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Course Code</th>
+                                        <th>Course Title</th>
+                                        <th>Date</th>
+                                        <th>Timing Slot</th>
+                                        <th>Examination Venue</th>
+                                        <th>Seat Roll</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="examScheduleTbody">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="admitCardModal">
+        <div class="modal-dialog" style="max-width: 640px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Official Examination Clearance Admit Card</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body" id="admitCardPrint">
+                <div style="border: 2px dashed var(--primary); padding: 1.5rem; border-radius: var(--radius-md);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem;">
+                        <div>
+                            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary);">BAUET</h2>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">Fall 2026 Midterm Admit Card</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="badge badge-success">Fee Cleared</span>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.875rem; margin-bottom: 1.25rem;">
+                        <div><strong>Candidate:</strong> <span id="admitName">Alex Harrison</span></div>
+                        <div><strong>Student ID:</strong> <span id="admitId">STU-2024-001</span></div>
+                        <div><strong>Program:</strong> B.Sc. in Computer Science</div>
+                        <div><strong>Verification:</strong> BIOMETRIC CLEARED</div>
+                    </div>
+
+                    <div style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.5;">
+                        * Candidates must display this credential alongside their institutional student smartcard at the examination room entrance. No electronic gadgets or programmable calculators permitted.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-sm" onclick="UMSApp.closeModal('admitCardModal')">Close</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Print Pass</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/students.js"></script>
+    <script>
+        let activeStudent = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = StudentPortal.init('exams', 'Exam Schedule');
+            if (!ctx) return;
+            activeStudent = ctx.student;
+
+            const exams = JSON.parse(localStorage.getItem('ums_db_exams')) || [];
+            const tbody = document.getElementById('examScheduleTbody');
+
+            if (exams.length > 0) {
+                StudentPortal.startExamCountdown(exams[0].date, 'countdownWidget');
+
+                tbody.innerHTML = exams.map(e => `
+          <tr>
+            <td><span class="badge badge-info">${e.type}</span></td>
+            <td><strong>${e.courseCode}</strong></td>
+            <td>${e.courseTitle}</td>
+            <td><strong>${e.date}</strong></td>
+            <td>${e.time}</td>
+            <td>${e.room}</td>
+            <td><span class="badge badge-neutral"><strong>${e.seatRoll}</strong></span></td>
+          </tr>
+        `).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 2rem;">No upcoming exams published.</td></tr>`;
+            }
+        });
+
+        function openAdmitCard() {
+            document.getElementById('admitName').textContent = activeStudent.name;
+            document.getElementById('admitId').textContent = activeStudent.id;
+            UMSApp.openModal('admitCardModal');
+        }
+    </script>
+</body>
+
+</html>

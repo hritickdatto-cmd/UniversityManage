@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gradebook & Results Management | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <style>
+        .mark-input {
+            width: 75px;
+            text-align: center;
+            padding: 0.35rem 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+        }
+        
+        .mark-input:focus {
+            border-color: var(--border-focus);
+            outline: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Continuous Assessment & Gradebook Matrix</h1>
+                        <p class="page-description">Enter evaluation breakdowns: Quiz (15) + Assignment (10) + Midterm (25) + Final Exam (50) = 100 Total</p>
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="window.print()">🖨️ Export Grade Sheet</button>
+                </div>
+
+                
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-body" style="padding: 1.25rem 1.5rem;">
+                        <div style="display: flex; gap: 1rem; align-items: flex-end; justify-content: space-between; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 260px;">
+                                <label class="form-label" for="gradeCourseSelect">Instructional Course Section <span class="required">*</span></label>
+                                <select id="gradeCourseSelect" class="form-control">
+                  
+                </select>
+                            </div>
+
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-primary" id="btnSaveGradebook">
+                  <span>💾 Publish & Save Gradebook</span>
+                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title" id="gradeSheetTitle">Course Evaluation Matrix</h2>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" id="gradeSheetMeta">Assessment weighting strictly follows Academic Senate regulations.</div>
+                        </div>
+                        <span class="badge badge-success" id="classAvgBadge">Class Avg: 0.0</span>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Scholar Name</th>
+                                        <th style="width: 100px;">Quiz<br><small style="color: var(--text-muted);">(Max 15)</small></th>
+                                        <th style="width: 100px;">Assignment<br><small style="color: var(--text-muted);">(Max 10)</small></th>
+                                        <th style="width: 100px;">Midterm<br><small style="color: var(--text-muted);">(Max 25)</small></th>
+                                        <th style="width: 100px;">Final Exam<br><small style="color: var(--text-muted);">(Max 50)</small></th>
+                                        <th style="width: 110px;">Total (100)</th>
+                                        <th style="width: 80px;">Grade</th>
+                                        <th style="width: 90px;">Point (4.0)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="gradebookTbody">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/teachers.js"></script>
+    <script>
+        let activeCourse = null;
+        let enrolledStudents = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = TeacherPortal.init('results', 'Gradebook & Results');
+            if (!ctx) return;
+            const {
+                teacher
+            } = ctx;
+
+            // Populate courses dropdown
+            const assigned = TeacherPortal.getTeacherCourses(teacher.id);
+            const courseSelect = document.getElementById('gradeCourseSelect');
+            assigned.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = `${c.code}: ${c.title} (Section ${c.section})`;
+                courseSelect.appendChild(opt);
+            });
+
+            // Handle ?course=CSE-301
+            const urlParams = new URLSearchParams(window.location.search);
+            const cParam = urlParams.get('course');
+            if (cParam && assigned.some(c => c.id === cParam)) {
+                courseSelect.value = cParam;
+            }
+
+            courseSelect.addEventListener('change', loadGradebook);
+            document.getElementById('btnSaveGradebook').addEventListener('click', saveAllGrades);
+
+            if (assigned.length > 0) {
+                loadGradebook();
+            }
+        });
+
+        function loadGradebook() {
+            const courseId = document.getElementById('gradeCourseSelect').value;
+            activeCourse = UMSStorage.findData('courses', c => c.id === courseId);
+            enrolledStudents = TeacherPortal.getStudentsByCourse(courseId);
+
+            document.getElementById('gradeSheetTitle').textContent = `${activeCourse.code}: ${activeCourse.title}`;
+            document.getElementById('gradeSheetMeta').textContent = `Credits: ${activeCourse.credits.toFixed(1)} &bull; Section ${activeCourse.section} &bull; ${enrolledStudents.length} Students Evaluated`;
+
+            const tbody = document.getElementById('gradebookTbody');
+            if (enrolledStudents.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center" style="padding: 2.5rem;">No enrolled students found for grading in this section.</td></tr>`;
+                return;
+            }
+
+            // Check results table for pre-existing records
+            const allResults = UMSStorage.getData('results');
+
+            tbody.innerHTML = enrolledStudents.map(s => {
+                const existing = allResults.find(r => r.studentId === s.id && r.courseCode === activeCourse.code) || {};
+
+                // Mock default continuous marks breakdown if total exists
+                let quiz = existing.quiz !== undefined ? existing.quiz : 13;
+                let assignment = existing.assignment !== undefined ? existing.assignment : 9;
+                let midterm = existing.midterm !== undefined ? existing.midterm : 22;
+                let finalMarks = existing.finalMarks !== undefined ? existing.finalMarks : (existing.marks ? Math.max(0, existing.marks - 44) : 44);
+
+                const total = quiz + assignment + midterm + finalMarks;
+                const gradeObj = TeacherPortal.calculateGrade(total);
+
+                return `
+          <tr data-student-id="${s.id}">
+            <td><strong>${s.id}</strong></td>
+            <td>
+              <div style="font-weight: 600;">${s.name}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">${s.program}</div>
+            </td>
+            <td><input type="number" class="mark-input inp-quiz" min="0" max="15" step="0.5" value="${quiz}" oninput="recalcRow('${s.id}')"></td>
+            <td><input type="number" class="mark-input inp-assignment" min="0" max="10" step="0.5" value="${assignment}" oninput="recalcRow('${s.id}')"></td>
+            <td><input type="number" class="mark-input inp-midterm" min="0" max="25" step="0.5" value="${midterm}" oninput="recalcRow('${s.id}')"></td>
+            <td><input type="number" class="mark-input inp-final" min="0" max="50" step="0.5" value="${finalMarks}" oninput="recalcRow('${s.id}')"></td>
+            <td><strong class="row-total" style="font-size: 1.05rem; color: var(--primary);">${total.toFixed(1)}</strong></td>
+            <td><span class="badge badge-success row-grade">${gradeObj.grade}</span></td>
+            <td><strong class="row-point">${gradeObj.point.toFixed(2)}</strong></td>
+          </tr>
+        `;
+            }).join('');
+
+            recalculateClassAvg();
+        }
+
+        function recalcRow(studentId) {
+            const row = document.querySelector(`tr[data-student-id="${studentId}"]`);
+            if (!row) return;
+
+            const q = Math.min(15, Math.max(0, parseFloat(row.querySelector('.inp-quiz').value) || 0));
+            const a = Math.min(10, Math.max(0, parseFloat(row.querySelector('.inp-assignment').value) || 0));
+            const m = Math.min(25, Math.max(0, parseFloat(row.querySelector('.inp-midterm').value) || 0));
+            const f = Math.min(50, Math.max(0, parseFloat(row.querySelector('.inp-final').value) || 0));
+
+            const total = q + a + m + f;
+            const gradeObj = TeacherPortal.calculateGrade(total);
+
+            row.querySelector('.row-total').textContent = total.toFixed(1);
+
+            const badge = row.querySelector('.row-grade');
+            badge.textContent = gradeObj.grade;
+            badge.className = `badge row-grade ${gradeObj.grade === 'F' ? 'badge-danger' : 'badge-success'}`;
+
+            row.querySelector('.row-point').textContent = gradeObj.point.toFixed(2);
+
+            recalculateClassAvg();
+        }
+
+        function recalculateClassAvg() {
+            const totals = Array.from(document.querySelectorAll('.row-total')).map(el => parseFloat(el.textContent) || 0);
+            if (totals.length === 0) return;
+            const sum = totals.reduce((acc, v) => acc + v, 0);
+            const avg = (sum / totals.length).toFixed(1);
+            document.getElementById('classAvgBadge').textContent = `Class Avg: ${avg} / 100`;
+        }
+
+        function saveAllGrades() {
+            if (!activeCourse) return;
+
+            const rows = document.querySelectorAll('#gradebookTbody tr[data-student-id]');
+            const allResults = UMSStorage.getData('results');
+
+            rows.forEach(r => {
+                const studentId = r.dataset.studentId;
+                const q = parseFloat(r.querySelector('.inp-quiz').value) || 0;
+                const a = parseFloat(r.querySelector('.inp-assignment').value) || 0;
+                const m = parseFloat(r.querySelector('.inp-midterm').value) || 0;
+                const f = parseFloat(r.querySelector('.inp-final').value) || 0;
+                const total = q + a + m + f;
+                const gradeObj = TeacherPortal.calculateGrade(total);
+
+                const existingIdx = allResults.findIndex(item => item.studentId === studentId && item.courseCode === activeCourse.code);
+
+                const entry = {
+                    studentId,
+                    semester: 'Fall 2026',
+                    courseCode: activeCourse.code,
+                    courseTitle: activeCourse.title,
+                    credits: activeCourse.credits,
+                    quiz: q,
+                    assignment: a,
+                    midterm: m,
+                    finalMarks: f,
+                    marks: Math.round(total),
+                    grade: gradeObj.grade,
+                    gradePoint: gradeObj.point,
+                    updatedAt: new Date().toISOString()
+                };
+
+                if (existingIdx >= 0) {
+                    allResults[existingIdx] = {...allResults[existingIdx],
+                        ...entry
+                    };
+                } else {
+                    allResults.push(entry);
+                }
+            });
+
+            UMSStorage.setData('results', allResults);
+            UMSApp.toast('All student marks and official letter grades published to student portal!', 'success');
+        }
+    </script>
+</body>
+
+</html>

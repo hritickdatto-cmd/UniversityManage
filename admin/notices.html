@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notice Board Management | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Institutional Notice & Circular Publisher</h1>
+                        <p class="page-description">Author, edit, and broadcast official announcements to faculty and student portals</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openNoticeModal()">
+            <span>➕ Compose New Notice</span>
+          </button>
+                </div>
+
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Dispatched Circulars</h2>
+                        <input type="text" id="noticeSearchInput" class="form-control" placeholder="Search notice title or content..." style="width: 260px;">
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Published Date</th>
+                                        <th>Notice Title</th>
+                                        <th>Category</th>
+                                        <th>Issuing Authority</th>
+                                        <th>Priority</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminNoticesTbody">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="noticeModal">
+        <div class="modal-dialog" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="noticeModalTitle">Compose Institutional Notice</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="noticeForm">
+                <input type="hidden" id="noticeEditId">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="nTitle">Notice Headline / Title <span class="required">*</span></label>
+                        <input type="text" id="nTitle" class="form-control" required placeholder="e.g. Schedule of Fall 2026 Final Examinations">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="nCategory">Category <span class="required">*</span></label>
+                            <select id="nCategory" class="form-control">
+                <option value="Academic">Academic</option>
+                <option value="Examination">Examination</option>
+                <option value="Events">Events</option>
+                <option value="Administrative">Administrative</option>
+              </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="nDate">Publication Date <span class="required">*</span></label>
+                            <input type="date" id="nDate" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="nAuthor">Issuing Department / Authority <span class="required">*</span></label>
+                        <input type="text" id="nAuthor" class="form-control" required value="Office of the Registrar">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="nContent">Official Announcement Text <span class="required">*</span></label>
+                        <textarea id="nContent" class="form-control" rows="5" required placeholder="Type the official communication body here..."></textarea>
+                    </div>
+
+                    <div class="form-check" style="margin-top: 0.5rem;">
+                        <input type="checkbox" id="nImportant">
+                        <label for="nImportant" style="font-weight: 600; color: var(--danger);">Mark as High Priority / Urgent Notice</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="UMSApp.closeModal('noticeModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Dispatch Circular</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AdminPortal.init('notices', 'Notice Board');
+            renderNotices();
+
+            document.getElementById('noticeSearchInput').addEventListener('input', renderNotices);
+            document.getElementById('noticeForm').addEventListener('submit', handleSaveNotice);
+        });
+
+        function renderNotices() {
+            const notices = UMSStorage.getData('notices');
+            const search = document.getElementById('noticeSearchInput').value.toLowerCase();
+            const tbody = document.getElementById('adminNoticesTbody');
+
+            const filtered = notices.filter(n => n.title.toLowerCase().includes(search) || n.content.toLowerCase().includes(search));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding: 2.5rem;">No circulars found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(n => `
+        <tr>
+          <td><strong>${n.date}</strong></td>
+          <td>
+            <div style="font-weight: 700; color: var(--text-primary);">${n.title}</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${n.content}</div>
+          </td>
+          <td><span class="badge badge-info">${n.category}</span></td>
+          <td>${n.author}</td>
+          <td>
+            <span class="badge ${n.important ? 'badge-danger' : 'badge-neutral'}">
+              ${n.important ? '★ Urgent' : 'Regular'}
+            </span>
+          </td>
+          <td>
+            <div style="display: flex; gap: 0.35rem;">
+              <button class="btn btn-outline btn-sm" onclick="editNotice('${n.id}')">✏️</button>
+              <button class="btn btn-outline btn-sm text-danger" onclick="deleteNotice('${n.id}')" style="color: var(--danger); border-color: var(--danger);">🗑️</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+        }
+
+        function openNoticeModal() {
+            document.getElementById('noticeModalTitle').textContent = 'Compose Institutional Notice';
+            document.getElementById('noticeEditId').value = '';
+            document.getElementById('nTitle').value = '';
+            document.getElementById('nDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('nAuthor').value = 'Office of the Registrar';
+            document.getElementById('nContent').value = '';
+            document.getElementById('nImportant').checked = false;
+            UMSApp.openModal('noticeModal');
+        }
+
+        function editNotice(id) {
+            const n = UMSStorage.findData('notices', item => item.id === id);
+            if (!n) return;
+
+            document.getElementById('noticeModalTitle').textContent = 'Modify Notice';
+            document.getElementById('noticeEditId').value = n.id;
+            document.getElementById('nTitle').value = n.title;
+            document.getElementById('nCategory').value = n.category;
+            document.getElementById('nDate').value = n.date;
+            document.getElementById('nAuthor').value = n.author;
+            document.getElementById('nContent').value = n.content;
+            document.getElementById('nImportant').checked = !!n.important;
+
+            UMSApp.openModal('noticeModal');
+        }
+
+        function handleSaveNotice(e) {
+            e.preventDefault();
+            const editId = document.getElementById('noticeEditId').value;
+            const title = document.getElementById('nTitle').value.trim();
+            const category = document.getElementById('nCategory').value;
+            const date = document.getElementById('nDate').value;
+            const author = document.getElementById('nAuthor').value.trim();
+            const content = document.getElementById('nContent').value.trim();
+            const important = document.getElementById('nImportant').checked;
+
+            if (editId) {
+                UMSStorage.updateData('notices', editId, {
+                    title,
+                    category,
+                    date,
+                    author,
+                    content,
+                    important
+                });
+                UMSApp.toast('Notice updated successfully.', 'success');
+            } else {
+                const id = 'NTC-' + Date.now().toString().slice(-4);
+                UMSStorage.addData('notices', {
+                    id,
+                    title,
+                    category,
+                    date,
+                    author,
+                    content,
+                    important
+                });
+                UMSApp.toast('Notice broadcasted to campus portals.', 'success');
+            }
+
+            UMSApp.closeModal('noticeModal');
+            renderNotices();
+        }
+
+        function deleteNotice(id) {
+            if (!confirm('Are you sure you want to retract and delete this notice?')) return;
+            UMSStorage.deleteData('notices', id);
+            UMSApp.toast('Notice retracted.', 'warning');
+            renderNotices();
+        }
+    </script>
+</body>
+
+</html>

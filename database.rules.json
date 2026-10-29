@@ -1,0 +1,38 @@
+{
+    "rules": {
+        ".read": false,
+        ".write": false,
+        "publicCatalog": {
+            "departments": {
+                ".read": true
+            },
+            "notices": {
+                ".read": true
+            }
+        },
+        "users": {
+            ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+            "$uid": {
+                ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+                ".write": "auth != null && ((auth.uid === $uid && ((!data.exists() && (newData.child('role').val() === 'student' || newData.child('role').val() === 'teacher')) || (data.exists() && newData.child('role').val() === data.child('role').val() && (newData.child('status').val() === data.child('status').val() || (data.child('role').val() === 'teacher' && data.child('status').val() === 'Pending' && newData.child('status').val() === 'Active'))))) || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+                ".validate": "newData.hasChildren(['uid', 'id', 'name', 'email', 'role', 'status']) && newData.child('uid').val() === $uid"
+            }
+        },
+        "students": {
+            ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+            "$uid": {
+                ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+                ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+                ".validate": "newData.child('userId').val() === $uid"
+            }
+        },
+        "teachers": {
+            ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+            "$uid": {
+                ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+                ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+                ".validate": "newData.child('userId').val() === $uid"
+            }
+        }
+    }
+}

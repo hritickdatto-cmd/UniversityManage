@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results Management | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Institution-Wide Result Ledger</h1>
+                        <p class="page-description">Audit submitted course evaluations, edit semester marks, and print transcripts</p>
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="window.print()">🖨️ Print Ledger</button>
+                </div>
+
+                
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-body" style="padding: 1rem 1.5rem;">
+                        <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 240px;">
+                                <input type="text" id="resultSearch" class="form-control" placeholder="Search by student ID or course code...">
+                            </div>
+                            <div class="toolbar-filters">
+                                <select id="resSemesterFilter" class="form-control" style="width: auto;">
+                  <option value="all">All Semesters</option>
+                  <option value="Spring 2026">Spring 2026</option>
+                  <option value="Fall 2026">Fall 2026</option>
+                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Academic Marks & Transcripts</h2>
+                        <span class="badge badge-primary" id="resultsCountBadge">0 Records</span>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Semester</th>
+                                        <th>Course Code</th>
+                                        <th>Course Title</th>
+                                        <th>Credits</th>
+                                        <th>Total Marks</th>
+                                        <th>Letter Grade</th>
+                                        <th>Grade Point</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminResultsTbody">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="editMarksModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Modify Grade Entry</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="editMarksForm">
+                <input type="hidden" id="mStudentId">
+                <input type="hidden" id="mCourseCode">
+                <div class="modal-body">
+                    <div style="background: var(--bg-main); padding: 0.85rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+                        <div><strong>Candidate ID:</strong> <span id="displayStuId">STU-001</span></div>
+                        <div><strong>Course:</strong> <span id="displayCourse">CSE-201</span></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="mTotalMarks">Total Marks (0 - 100) <span class="required">*</span></label>
+                        <input type="number" id="mTotalMarks" class="form-control" min="0" max="100" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="UMSApp.closeModal('editMarksModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Save & Recalculate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AdminPortal.init('results', 'Results Management');
+            renderResults();
+
+            document.getElementById('resultSearch').addEventListener('input', renderResults);
+            document.getElementById('resSemesterFilter').addEventListener('change', renderResults);
+            document.getElementById('editMarksForm').addEventListener('submit', handleSaveMarks);
+        });
+
+        function renderResults() {
+            const results = UMSStorage.getData('results');
+            const search = document.getElementById('resultSearch').value.toLowerCase();
+            const sem = document.getElementById('resSemesterFilter').value;
+            const tbody = document.getElementById('adminResultsTbody');
+
+            const filtered = results.filter(r => {
+                const matchesSearch = r.studentId.toLowerCase().includes(search) || r.courseCode.toLowerCase().includes(search);
+                const matchesSem = sem === 'all' || r.semester === sem;
+                return matchesSearch && matchesSem;
+            });
+
+            document.getElementById('resultsCountBadge').textContent = `${filtered.length} Entries`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center" style="padding: 2.5rem;">No evaluation entries found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(r => `
+        <tr>
+          <td><strong>${r.studentId}</strong></td>
+          <td><span class="badge badge-neutral">${r.semester}</span></td>
+          <td><strong>${r.courseCode}</strong></td>
+          <td>${r.courseTitle}</td>
+          <td>${r.credits.toFixed(1)}</td>
+          <td>${r.marks} / 100</td>
+          <td><span class="badge ${r.grade === 'F' ? 'badge-danger' : 'badge-success'}">${r.grade}</span></td>
+          <td><strong>${r.gradePoint.toFixed(2)}</strong></td>
+          <td>
+            <button class="btn btn-outline btn-sm" onclick="openEditMarks('${r.studentId}', '${r.courseCode}')">✏️ Modify</button>
+          </td>
+        </tr>
+      `).join('');
+        }
+
+        function openEditMarks(studentId, courseCode) {
+            const r = UMSStorage.findData('results', item => item.studentId === studentId && item.courseCode === courseCode);
+            if (!r) return;
+
+            document.getElementById('mStudentId').value = studentId;
+            document.getElementById('mCourseCode').value = courseCode;
+            document.getElementById('displayStuId').textContent = studentId;
+            document.getElementById('displayCourse').textContent = `${courseCode}: ${r.courseTitle}`;
+            document.getElementById('mTotalMarks').value = r.marks;
+
+            UMSApp.openModal('editMarksModal');
+        }
+
+        function handleSaveMarks(e) {
+            e.preventDefault();
+            const studentId = document.getElementById('mStudentId').value;
+            const courseCode = document.getElementById('mCourseCode').value;
+            const marks = parseFloat(document.getElementById('mTotalMarks').value);
+
+            // Recalculate letter grade and point
+            let grade = 'F',
+                point = 0.00;
+            if (marks >= 90) {
+                grade = 'A+';
+                point = 4.00;
+            } else if (marks >= 85) {
+                grade = 'A';
+                point = 3.75;
+            } else if (marks >= 80) {
+                grade = 'A-';
+                point = 3.50;
+            } else if (marks >= 75) {
+                grade = 'B+';
+                point = 3.25;
+            } else if (marks >= 70) {
+                grade = 'B';
+                point = 3.00;
+            } else if (marks >= 60) {
+                grade = 'C';
+                point = 2.00;
+            }
+
+            const all = UMSStorage.getData('results');
+            const idx = all.findIndex(item => item.studentId === studentId && item.courseCode === courseCode);
+            if (idx !== -1) {
+                all[idx].marks = marks;
+                all[idx].grade = grade;
+                all[idx].gradePoint = point;
+                UMSStorage.setData('results', all);
+                UMSApp.toast('Grade updated and recalculated successfully.', 'success');
+            }
+
+            UMSApp.closeModal('editMarksModal');
+            renderResults();
+        }
+    </script>
+</body>
+
+</html>

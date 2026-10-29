@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Attendance Roll Call | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Daily Lecture Attendance Register</h1>
+                        <p class="page-description">Record attendance sessions with instant cross-portal student synchronization</p>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-outline btn-sm" id="btnMarkAllPresent">✓ Mark All Present</button>
+                        <button class="btn btn-outline btn-sm text-danger" id="btnMarkAllAbsent" style="color: var(--danger); border-color: var(--danger);">✕ Mark All Absent</button>
+                    </div>
+                </div>
+
+                
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-body" style="padding: 1.25rem 1.5rem;">
+                        <div style="display: grid; grid-template-columns: 2fr 1fr 1.2fr auto; gap: 1rem; align-items: flex-end;">
+                            <div>
+                                <label class="form-label" for="attCourseSelect">Instructional Course Section <span class="required">*</span></label>
+                                <select id="attCourseSelect" class="form-control">
+                  
+                </select>
+                            </div>
+
+                            <div>
+                                <label class="form-label" for="attSectionInput">Section</label>
+                                <input type="text" id="attSectionInput" class="form-control" value="A" readonly>
+                            </div>
+
+                            <div>
+                                <label class="form-label" for="attDateInput">Session Date <span class="required">*</span></label>
+                                <input type="date" id="attDateInput" class="form-control">
+                            </div>
+
+                            <div>
+                                <button class="btn btn-primary" id="btnLoadSessionRoster" style="height: 42px;">
+                  <span>Load Roll Sheet</span>
+                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <form id="rollCallForm">
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="card-title" id="sheetTitle">Attendance Sheet</h2>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;" id="sheetSubtitle">Select a course and session date to begin roll call.</div>
+                            </div>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <div style="font-size: 0.85rem; font-weight: 600;">Present Ratio: <span id="sessionRatio" style="color: var(--success);">0 / 0 (0%)</span></div>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 60px;">#</th>
+                                            <th>Student ID</th>
+                                            <th>Scholar Name</th>
+                                            <th>Historical Attendance %</th>
+                                            <th style="width: 220px; text-align: center;">Roll Call Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rollCallTbody">
+                                        <tr>
+                                            <td colspan="5" class="text-center" style="padding: 3rem;">
+                                                <div class="empty-state-icon">📅</div>
+                                                <div class="empty-state-title">No Session Loaded</div>
+                                                <p class="empty-state-desc">Select your course and date above, then click "Load Roll Sheet" to begin roll call.</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-body" style="border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; background: var(--bg-main);">
+                            <button type="submit" class="btn btn-primary" id="btnSaveAttendance" disabled>
+                <span>💾 Save & Synchronize Attendance</span>
+              </button>
+                        </div>
+                    </div>
+                </form>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/teachers.js"></script>
+    <script>
+        let activeStudents = [];
+        let currentCourseObj = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = TeacherPortal.init('attendance', 'Take Attendance');
+            if (!ctx) return;
+            const {
+                teacher
+            } = ctx;
+
+            // Set today's date
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('attDateInput').value = todayStr;
+
+            // Populate courses dropdown
+            const assigned = TeacherPortal.getTeacherCourses(teacher.id);
+            const courseSelect = document.getElementById('attCourseSelect');
+            assigned.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = `${c.code}: ${c.title} (Section ${c.section})`;
+                opt.dataset.section = c.section;
+                courseSelect.appendChild(opt);
+            });
+
+            // Handle query params ?course=CSE-301&section=A
+            const urlParams = new URLSearchParams(window.location.search);
+            const cParam = urlParams.get('course');
+            if (cParam && assigned.some(c => c.id === cParam)) {
+                courseSelect.value = cParam;
+            }
+
+            updateSelectedSection();
+            courseSelect.addEventListener('change', updateSelectedSection);
+
+            document.getElementById('btnLoadSessionRoster').addEventListener('click', loadRoster);
+            document.getElementById('btnMarkAllPresent').addEventListener('click', () => setAllStatus('Present'));
+            document.getElementById('btnMarkAllAbsent').addEventListener('click', () => setAllStatus('Absent'));
+
+            // Form submit
+            document.getElementById('rollCallForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                saveAttendance();
+            });
+
+            // Auto load first course
+            if (assigned.length > 0) {
+                loadRoster();
+            }
+        });
+
+        function updateSelectedSection() {
+            const courseSelect = document.getElementById('attCourseSelect');
+            const selectedOpt = courseSelect.options[courseSelect.selectedIndex];
+            if (selectedOpt) {
+                document.getElementById('attSectionInput').value = selectedOpt.dataset.section || 'A';
+            }
+        }
+
+        function loadRoster() {
+            const courseId = document.getElementById('attCourseSelect').value;
+            const section = document.getElementById('attSectionInput').value;
+            const date = document.getElementById('attDateInput').value;
+
+            if (!courseId || !date) {
+                UMSApp.toast('Please choose both course and valid lecture date.', 'warning');
+                return;
+            }
+
+            currentCourseObj = UMSStorage.findData('courses', c => c.id === courseId);
+            activeStudents = TeacherPortal.getStudentsByCourse(courseId);
+
+            document.getElementById('sheetTitle').textContent = `${currentCourseObj.code}: ${currentCourseObj.title}`;
+            document.getElementById('sheetSubtitle').textContent = `Section ${section} &bull; Lecture Session: ${date} &bull; ${activeStudents.length} Registered Students`;
+
+            const tbody = document.getElementById('rollCallTbody');
+            const saveBtn = document.getElementById('btnSaveAttendance');
+
+            if (activeStudents.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding: 2.5rem;">No registered students found in this course section.</td></tr>`;
+                saveBtn.disabled = true;
+                return;
+            }
+
+            // Check if existing log exists for this date
+            const existingLog = TeacherPortal.getDailyAttendance(courseId, date, section);
+            const existingStatusMap = {};
+            if (existingLog && Array.isArray(existingLog.records)) {
+                existingLog.records.forEach(r => {
+                    existingStatusMap[r.studentId] = r.status;
+                });
+            }
+
+            // Retrieve student attendance aggregates
+            const allAtt = UMSStorage.getData('attendance');
+
+            tbody.innerHTML = activeStudents.map((s, idx) => {
+                const studentHistory = allAtt.find(a => a.studentId === s.id && a.courseCode === currentCourseObj.code);
+                let pct = '100.0%';
+                if (studentHistory && studentHistory.totalClasses > 0) {
+                    pct = ((studentHistory.present / studentHistory.totalClasses) * 100).toFixed(1) + '%';
+                }
+
+                const prefillStatus = existingStatusMap[s.id] || 'Present';
+
+                return `
+          <tr data-student-id="${s.id}">
+            <td>${idx + 1}</td>
+            <td><strong>${s.id}</strong></td>
+            <td>
+              <div style="font-weight: 600;">${s.name}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">${s.program}</div>
+            </td>
+            <td><span class="badge badge-neutral">${pct} Current</span></td>
+            <td style="text-align: center;">
+              <div style="display: inline-flex; border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden;">
+                <button type="button" class="btn btn-sm btn-status btn-present ${prefillStatus === 'Present' ? 'active' : ''}" 
+                        data-status="Present" onclick="toggleStatus('${s.id}', 'Present')" 
+                        style="border-radius: 0; padding: 0.4rem 1rem;">
+                  ✓ Present
+                </button>
+                <button type="button" class="btn btn-sm btn-status btn-absent ${prefillStatus === 'Absent' ? 'active' : ''}" 
+                        data-status="Absent" onclick="toggleStatus('${s.id}', 'Absent')" 
+                        style="border-radius: 0; padding: 0.4rem 1rem;">
+                  ✕ Absent
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+            }).join('');
+
+            saveBtn.disabled = false;
+            updateRatio();
+        }
+
+        function toggleStatus(studentId, targetStatus) {
+            const row = document.querySelector(`tr[data-student-id="${studentId}"]`);
+            if (!row) return;
+
+            const pBtn = row.querySelector('.btn-present');
+            const aBtn = row.querySelector('.btn-absent');
+
+            if (targetStatus === 'Present') {
+                pBtn.classList.add('active');
+                aBtn.classList.remove('active');
+            } else {
+                aBtn.classList.add('active');
+                pBtn.classList.remove('active');
+            }
+
+            updateRatio();
+        }
+
+        function setAllStatus(status) {
+            activeStudents.forEach(s => toggleStatus(s.id, status));
+        }
+
+        function updateRatio() {
+            const rows = document.querySelectorAll('#rollCallTbody tr[data-student-id]');
+            let presentCount = 0;
+            rows.forEach(r => {
+                if (r.querySelector('.btn-present.active')) presentCount++;
+            });
+            const total = rows.length;
+            const pct = total > 0 ? ((presentCount / total) * 100).toFixed(0) : 0;
+            document.getElementById('sessionRatio').textContent = `${presentCount} / ${total} (${pct}%)`;
+        }
+
+        function saveAttendance() {
+            const courseId = document.getElementById('attCourseSelect').value;
+            const section = document.getElementById('attSectionInput').value;
+            const date = document.getElementById('attDateInput').value;
+
+            const rows = document.querySelectorAll('#rollCallTbody tr[data-student-id]');
+            const records = [];
+
+            rows.forEach(r => {
+                const studentId = r.dataset.studentId;
+                const isPresent = !!r.querySelector('.btn-present.active');
+                records.push({
+                    studentId,
+                    status: isPresent ? 'Present' : 'Absent'
+                });
+            });
+
+            const res = TeacherPortal.saveDailyAttendance(courseId, date, section, records);
+            if (res.success) {
+                UMSApp.toast(res.message, 'success');
+            }
+        }
+    </script>
+
+    <style>
+        .btn-status {
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            border: none;
+            transition: all 0.15s ease;
+        }
+        
+        .btn-present.active {
+            background: var(--success);
+            color: #fff !important;
+            font-weight: 700;
+        }
+        
+        .btn-absent.active {
+            background: var(--danger);
+            color: #fff !important;
+            font-weight: 700;
+        }
+    </style>
+</body>
+
+</html>

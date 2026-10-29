@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrolled Students | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Course Student Rosters</h1>
+                        <p class="page-description">Inspect scholar dossiers, contact details, and semester academic standing</p>
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="window.print()">🖨️ Export Student Roster</button>
+                </div>
+
+                
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-body" style="padding: 1rem 1.5rem;">
+                        <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 240px;">
+                                <input type="text" id="studentSearchInput" class="form-control" placeholder="Search by student name, ID, or email...">
+                            </div>
+                            <div class="toolbar-filters">
+                                <select id="courseFilterSelect" class="form-control" style="width: auto;">
+                  <option value="all">All Assigned Courses</option>
+                  
+                </select>
+                                <select id="semesterFilterSelect" class="form-control" style="width: auto;">
+                  <option value="all">All Semesters</option>
+                  <option value="5th">5th Semester</option>
+                  <option value="7th">7th Semester</option>
+                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Enrolled Students Roster</h2>
+                        <span class="badge badge-primary" id="rosterCountBadge">0 Students</span>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Name</th>
+                                        <th>Program & Dept</th>
+                                        <th>Semester</th>
+                                        <th>Academic CGPA</th>
+                                        <th>Email Contact</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentRosterTbody">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="studentDossierModal">
+        <div class="modal-dialog" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Student Academic Dossier</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.25rem;">
+                    <div id="modalAvatar" style="width: 70px; height: 70px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; font-weight: 800;">
+                        ST
+                    </div>
+                    <div>
+                        <h3 id="modalStudentName" style="font-size: 1.3rem; font-weight: 800; margin-bottom: 0.2rem;">Student Name</h3>
+                        <div id="modalProgram" style="font-size: 0.85rem; color: var(--text-secondary);">B.Sc. in Computer Science</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">ID: <strong id="modalStudentId">STU-000</strong></div>
+                    </div>
+                </div>
+
+                <table style="width: 100%; font-size: 0.9rem; border-collapse: collapse;">
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 0.6rem 0; color: var(--text-muted); width: 35%;">Institutional Email</td>
+                        <td style="padding: 0.6rem 0; font-weight: 600;" id="modalEmail">email@university.edu</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 0.6rem 0; color: var(--text-muted);">Phone Number</td>
+                        <td style="padding: 0.6rem 0; font-weight: 600;" id="modalPhone">+1 555 000</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 0.6rem 0; color: var(--text-muted);">Current Standing</td>
+                        <td style="padding: 0.6rem 0; font-weight: 600;" id="modalStanding">CGPA: 3.84</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 0.6rem 0; color: var(--text-muted);">Guardian Contact</td>
+                        <td style="padding: 0.6rem 0; font-weight: 600;" id="modalGuardian">N/A</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.6rem 0; color: var(--text-muted);">Enrolled In Courses</td>
+                        <td style="padding: 0.6rem 0; font-weight: 600;" id="modalCoursesList">CSE-301, CSE-303</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-sm" onclick="UMSApp.closeModal('studentDossierModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/teachers.js"></script>
+    <script>
+        let facultyCourses = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = TeacherPortal.init('students', 'My Students');
+            if (!ctx) return;
+            const {
+                teacher
+            } = ctx;
+
+            facultyCourses = TeacherPortal.getTeacherCourses(teacher.id);
+
+            // Populate Course filter dropdown
+            const courseSelect = document.getElementById('courseFilterSelect');
+            facultyCourses.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = `${c.code} - ${c.title} (Sec ${c.section})`;
+                courseSelect.appendChild(opt);
+            });
+
+            // Handle URL param filter ?course=CSE-301
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseParam = urlParams.get('course');
+            if (courseParam) {
+                courseSelect.value = courseParam;
+            }
+
+            renderRoster();
+
+            document.getElementById('studentSearchInput').addEventListener('input', renderRoster);
+            document.getElementById('courseFilterSelect').addEventListener('change', renderRoster);
+            document.getElementById('semesterFilterSelect').addEventListener('change', renderRoster);
+        });
+
+        function renderRoster() {
+            const search = document.getElementById('studentSearchInput').value.toLowerCase();
+            const courseVal = document.getElementById('courseFilterSelect').value;
+            const semVal = document.getElementById('semesterFilterSelect').value;
+            const tbody = document.getElementById('studentRosterTbody');
+
+            let targetStudents = [];
+            if (courseVal === 'all') {
+                // Collect students enrolled in ANY of the teacher's courses
+                const stuSet = new Set();
+                facultyCourses.forEach(c => {
+                    const inCourse = TeacherPortal.getStudentsByCourse(c.id);
+                    inCourse.forEach(s => stuSet.add(s.id));
+                });
+                const allStudents = UMSStorage.getData('students');
+                targetStudents = allStudents.filter(s => stuSet.has(s.id));
+            } else {
+                targetStudents = TeacherPortal.getStudentsByCourse(courseVal);
+            }
+
+            const filtered = targetStudents.filter(s => {
+                const matchesSearch = s.name.toLowerCase().includes(search) ||
+                    s.id.toLowerCase().includes(search) ||
+                    s.email.toLowerCase().includes(search);
+                const matchesSem = semVal === 'all' || s.currentSemester === semVal;
+                return matchesSearch && matchesSem;
+            });
+
+            document.getElementById('rosterCountBadge').textContent = `${filtered.length} Students`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 2.5rem;">No student records found matching the active criteria.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(s => `
+        <tr>
+          <td><strong>${s.id}</strong></td>
+          <td>
+            <div style="font-weight: 600;">${s.name}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">${s.batch} Batch</div>
+          </td>
+          <td>${s.department} &bull; ${s.program}</td>
+          <td><span class="badge badge-neutral">${s.currentSemester} Sem</span></td>
+          <td><strong style="color: var(--primary);">${s.cgpa ? s.cgpa.toFixed(2) : '3.80'}</strong></td>
+          <td>${s.email}</td>
+          <td><span class="badge badge-success">${s.status || 'Active'}</span></td>
+          <td>
+            <button class="btn btn-outline btn-sm" onclick="viewDossier('${s.id}')">
+              <span>🔍 Dossier</span>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+        }
+
+        function viewDossier(studentId) {
+            const student = UMSStorage.findData('students', s => s.id === studentId);
+            if (!student) return;
+
+            document.getElementById('modalAvatar').textContent = student.avatar || 'ST';
+            document.getElementById('modalStudentName').textContent = student.name;
+            document.getElementById('modalProgram').textContent = `${student.program} (${student.department})`;
+            document.getElementById('modalStudentId').textContent = student.id;
+            document.getElementById('modalEmail').textContent = student.email;
+            document.getElementById('modalPhone').textContent = student.phone || 'N/A';
+            document.getElementById('modalStanding').textContent = `CGPA: ${student.cgpa ? student.cgpa.toFixed(2) : '3.80'} / 4.00 (${student.totalCredits || 78} Credits)`;
+            document.getElementById('modalGuardian').textContent = `${student.guardianName || 'N/A'} (${student.guardianPhone || 'N/A'})`;
+
+            let enrollments = {};
+            try {
+                enrollments = JSON.parse(localStorage.getItem('ums_student_enrollments')) || {};
+            } catch (e) {}
+            const enrolledCourses = enrollments[student.id] || [];
+            document.getElementById('modalCoursesList').textContent = enrolledCourses.join(', ') || 'CSE-301';
+
+            UMSApp.openModal('studentDossierModal');
+        }
+    </script>
+</body>
+
+</html>

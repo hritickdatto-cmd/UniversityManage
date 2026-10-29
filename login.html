@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BAUET | Unified Portal Sign In</title>
+    <script type="module" src="/js/firebase.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <style>
+        .auth-page {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            background-color: var(--bg-main);
+        }
+        
+        .auth-banner-panel {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: #ffffff;
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .auth-banner-panel::after {
+            content: '';
+            position: absolute;
+            width: 380px;
+            height: 380px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, transparent 70%);
+            bottom: -100px;
+            right: -100px;
+            border-radius: 50%;
+        }
+        
+        .auth-form-panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem;
+        }
+        
+        .auth-card {
+            width: 100%;
+            max-width: 440px;
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .role-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.4rem;
+            background-color: var(--bg-main);
+            padding: 0.35rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.75rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        .role-tab-btn {
+            padding: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            text-align: center;
+            transition: all var(--transition-fast);
+        }
+        
+        .role-tab-btn.active {
+            background-color: var(--bg-surface);
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .demo-credentials-box {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: var(--primary-soft);
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--primary-light);
+        }
+        
+        .demo-btn-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 900px) {
+            .auth-page {
+                grid-template-columns: 1fr;
+            }
+            .auth-banner-panel {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="auth-page">
+
+        <div class="auth-banner-panel">
+            <div>
+                <a href="index.html" style="display: flex; align-items: center; gap: 0.75rem; font-size: 1.25rem; font-weight: 700; color: #fff;">
+                    <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;">🏛️</div>
+                    <span>BAUET</span>
+                </a>
+                <div style="margin-top: 4rem;">
+                    <h2 style="font-size: 2.25rem; font-weight: 800; line-height: 1.2; margin-bottom: 1rem;">
+                        Central Information Portal & Management System
+                    </h2>
+                    <p style="color: #cbd5e1; font-size: 1rem; line-height: 1.6; max-width: 460px;">
+                        Secure role-governed entrance for scholars, faculty mentors, and academic administrators. Access student rosters, course grades, institutional finance, and departmental records.
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <div style="font-size: 0.85rem; color: #94a3b8;">
+                    Authorized Academic Personnel Only &bull; 256-Bit SSL Encrypted Protocol
+                </div>
+            </div>
+        </div>
+
+
+        <div class="auth-form-panel">
+            <div class="auth-card">
+                <div style="margin-bottom: 1.5rem; text-align: left;">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.25rem;">Sign In to Portal</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.875rem;">Select your role and supply your credentials</p>
+                </div>
+
+
+                <div class="role-tabs" role="tablist">
+                    <button type="button" class="role-tab-btn active" data-role="student">Student</button>
+                    <button type="button" class="role-tab-btn" data-role="teacher">Faculty</button>
+                    <button type="button" class="role-tab-btn" data-role="admin">Admin</button>
+                </div>
+
+
+                <form id="loginForm" novalidate>
+                    <input type="hidden" id="selectedRole" value="student">
+
+                    <div class="form-group">
+                        <label class="form-label" for="userEmail">
+              Email Address <span class="required">*</span>
+            </label>
+                        <input type="email" id="userEmail" class="form-control" placeholder="name@example.com" required autocomplete="username">
+                    </div>
+
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                            <label class="form-label" for="userPassword" style="margin-bottom: 0;">
+                Password <span class="required">*</span>
+              </label>
+                            <button type="button" class="text-primary" id="btnForgotPwd" style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">
+                Forgot password?
+              </button>
+                        </div>
+                        <div class="input-password-wrap">
+                            <input type="password" id="userPassword" class="form-control" placeholder="••••••••••••" required autocomplete="current-password">
+                            <button type="button" class="btn-toggle-password" id="togglePasswordBtn" title="Show or Hide Password" aria-label="Toggle password visibility">
+                👁️
+              </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+                        <label class="form-check">
+              <input type="checkbox" id="rememberMe">
+              <span>Remember this workstation</span>
+            </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitLoginBtn">
+            <span>Sign In</span>
+            <span>→</span>
+          </button>
+                </form>
+
+                <div style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem;">
+                    <a href="register.html" style="color: var(--primary); font-weight: 600;">Create a BAUET account</a>
+                    <span style="color: var(--text-secondary); padding: 0 0.5rem;">&bull;</span>
+                    <a href="index.html" style="color: var(--text-secondary);">&larr; Back to BAUET Homepage</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal-overlay" id="forgotModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Reset Security Credentials</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Enter your registered institutional university email. A verified password restoration link will be forwarded to your academic mailbox.
+                </p>
+                <div class="form-group">
+                    <label class="form-label" for="resetEmail">University Email</label>
+                    <input type="email" id="resetEmail" class="form-control" placeholder="name@example.com">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline btn-sm" onclick="UMSApp.closeModal('forgotModal')">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="btnSendReset">Dispatch Reset Link</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="js/storage.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const roleTabs = document.querySelectorAll('.role-tab-btn');
+            const selectedRoleInput = document.getElementById('selectedRole');
+            const emailInput = document.getElementById('userEmail');
+            const passwordInput = document.getElementById('userPassword');
+            const rememberCheckbox = document.getElementById('rememberMe');
+            const loginForm = document.getElementById('loginForm');
+            const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+
+            // 1. Check URL parameters for role hint (?role=teacher)
+            const urlParams = new URLSearchParams(window.location.search);
+            const roleParam = urlParams.get('role');
+            if (roleParam && ['student', 'teacher', 'admin'].includes(roleParam)) {
+                setRole(roleParam);
+            }
+
+            // 2. Populate remembered email if exists
+            const remembered = UMSAuth.getRemembered();
+            if (remembered) {
+                emailInput.value = remembered.email;
+                rememberCheckbox.checked = true;
+                setRole(remembered.role);
+            }
+
+            // 3. Tab Role Switcher
+            roleTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    setRole(tab.dataset.role);
+                });
+            });
+
+            function setRole(role) {
+                roleTabs.forEach(t => t.classList.toggle('active', t.dataset.role === role));
+                selectedRoleInput.value = role;
+                if (role === 'admin') {
+                    emailInput.value = 'admin@gmail.com';
+                    passwordInput.value = '123456';
+                }
+            }
+
+            // 4. Password Visibility Toggle
+            togglePasswordBtn.addEventListener('click', () => {
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                togglePasswordBtn.textContent = isPassword ? '🙈' : '👁️';
+            });
+
+            // 5. Quick Demo Autofill Handlers
+            document.querySelectorAll('.demo-fill').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const role = btn.dataset.demoRole;
+                    const email = btn.dataset.demoEmail;
+                    const pass = btn.dataset.demoPass;
+
+                    setRole(role);
+                    emailInput.value = email;
+                    passwordInput.value = pass;
+
+                    UMSApp.toast(`Filled demo credentials for ${role.toUpperCase()}`, 'info');
+                });
+            });
+
+            // 6. Form Submission Handler
+            loginForm.addEventListener('submit', async(e) => {
+                e.preventDefault();
+
+                const role = selectedRoleInput.value;
+                const email = emailInput.value.trim();
+                const password = passwordInput.value;
+                const remember = rememberCheckbox.checked;
+
+                if (!email || !password) {
+                    UMSApp.toast('Please provide both institutional email and password.', 'error');
+                    return;
+                }
+
+                const submitButton = document.getElementById('submitLoginBtn');
+                submitButton.disabled = true;
+                const result = await UMSAuth.login(email, password, role, remember);
+                submitButton.disabled = false;
+
+                if (!result.success) {
+                    UMSApp.toast(result.message, 'error');
+                    return;
+                }
+
+                UMSApp.toast(`Authenticated successfully. Redirecting to ${role.toUpperCase()} portal...`, 'success');
+
+                setTimeout(() => {
+                    window.location.href = result.redirectUrl;
+                }, 800);
+            });
+
+            // 7. Forgot Password Handling
+            document.getElementById('btnForgotPwd').addEventListener('click', () => {
+                UMSApp.openModal('forgotModal');
+            });
+
+            document.getElementById('btnSendReset').addEventListener('click', async() => {
+                const resetEmail = document.getElementById('resetEmail').value.trim();
+                if (!resetEmail) {
+                    UMSApp.toast('Please enter a valid academic email address.', 'warning');
+                    return;
+                }
+                try {
+                    await window.UMSFirebase.sendPasswordResetEmail(window.UMSFirebase.auth, resetEmail);
+                    UMSApp.closeModal('forgotModal');
+                    UMSApp.toast('Password reset instructions have been sent if the account exists.', 'success');
+                } catch (error) {
+                    UMSApp.toast('Could not send the reset email. Check the address and try again.', 'error');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

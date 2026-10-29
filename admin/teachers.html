@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Registry | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Faculty & Instructional Registry</h1>
+                        <p class="page-description">Appoint professors, assign department affiliations, and oversee teaching allocations</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openTeacherModal()">
+            <span>➕ Appoint Faculty Member</span>
+          </button>
+                </div>
+
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-header">
+                        <h2 class="card-title">Faculty Registration Approvals</h2>
+                        <span class="badge badge-warning" id="pendingFacultyCount">Loading</span>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Employee ID</th>
+                                        <th>Email</th>
+                                        <th>Department</th>
+                                        <th>Designation</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pendingFacultyTbody">
+                                    <tr>
+                                        <td colspan="6" class="text-center" style="padding: 1.5rem;">Loading pending registrations...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-body" style="padding: 1rem 1.5rem;">
+                        <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 240px;">
+                                <input type="text" id="searchTeacherInput" class="form-control" placeholder="Search faculty by name, employee ID, email...">
+                            </div>
+                            <div class="toolbar-filters">
+                                <select id="teacherDeptFilter" class="form-control" style="width: auto;">
+                  <option value="all">All Departments</option>
+                  
+                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Registered Faculty Members</h2>
+                        <span class="badge badge-primary" id="teacherCountBadge">0 Faculty</span>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Employee ID</th>
+                                        <th>Faculty Name</th>
+                                        <th>Designation</th>
+                                        <th>Department</th>
+                                        <th>Assigned Courses</th>
+                                        <th>Email Contact</th>
+                                        <th>Office Room</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="teachersMasterTbody">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="teacherModal">
+        <div class="modal-dialog" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="teacherModalTitle">Appoint Faculty Member</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="teacherForm">
+                <input type="hidden" id="teacherEditId">
+                <div class="modal-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="facIdInput">Employee ID <span class="required">*</span></label>
+                            <input type="text" id="facIdInput" class="form-control" required placeholder="FAC-103">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="facNameInput">Full Name & Title <span class="required">*</span></label>
+                            <input type="text" id="facNameInput" class="form-control" required placeholder="Dr. John von Neumann">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="facDesignationInput">Designation <span class="required">*</span></label>
+                            <input type="text" id="facDesignationInput" class="form-control" required value="Professor">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="facDeptSelect">Department <span class="required">*</span></label>
+                            <select id="facDeptSelect" class="form-control" required></select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="facEmailInput">University Email <span class="required">*</span></label>
+                            <input type="email" id="facEmailInput" class="form-control" required placeholder="faculty@university.edu">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="facRoomInput">Faculty Office Room</label>
+                            <input type="text" id="facRoomInput" class="form-control" placeholder="Academic Block 3, Room 405">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="UMSApp.closeModal('teacherModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Save Faculty Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AdminPortal.init('teachers', 'Faculty Registry');
+
+            const depts = UMSStorage.getData('departments');
+            const deptFilter = document.getElementById('teacherDeptFilter');
+            const facDeptSelect = document.getElementById('facDeptSelect');
+
+            depts.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.code;
+                opt.textContent = `${d.name} (${d.code})`;
+                deptFilter.appendChild(opt);
+
+                const opt2 = document.createElement('option');
+                opt2.value = d.code;
+                opt2.textContent = `${d.name} (${d.code})`;
+                facDeptSelect.appendChild(opt2);
+            });
+
+            renderTeachers();
+            loadPendingFacultyApprovals();
+
+            document.getElementById('pendingFacultyTbody').addEventListener('click', handleFacultyApproval);
+
+            document.getElementById('searchTeacherInput').addEventListener('input', renderTeachers);
+            document.getElementById('teacherDeptFilter').addEventListener('change', renderTeachers);
+            document.getElementById('teacherForm').addEventListener('submit', handleSaveTeacher);
+        });
+
+        async function loadPendingFacultyApprovals() {
+            const tbody = document.getElementById('pendingFacultyTbody');
+            const count = document.getElementById('pendingFacultyCount');
+
+            try {
+                const firebase = window.UMSFirebase;
+                const snapshot = await firebase.get(firebase.ref(firebase.database, 'users'));
+                const users = snapshot.val() || {};
+                const pending = Object.entries(users)
+                    .filter(([, user]) => user.role === 'teacher' && user.status === 'Pending')
+                    .map(([uid, user]) => ({
+                        uid,
+                        ...user
+                    }));
+
+                count.textContent = `${pending.length} Pending`;
+                if (pending.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding: 1.5rem;">No faculty registrations awaiting approval.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = pending.map(user => `
+                    <tr>
+                        <td>${escapeApprovalText(user.name)}</td>
+                        <td><strong>${escapeApprovalText(user.id)}</strong></td>
+                        <td>${escapeApprovalText(user.email)}</td>
+                        <td>${escapeApprovalText(user.department)}</td>
+                        <td>${escapeApprovalText(user.designation || 'Faculty')}</td>
+                        <td><button type="button" class="btn btn-primary btn-sm" data-approve-faculty="${escapeApprovalText(user.uid)}">Approve</button></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Unable to load pending faculty registrations:', error);
+                count.textContent = 'Unavailable';
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding: 1.5rem;">Could not load registrations. Check database rules and try again.</td></tr>';
+            }
+        }
+
+        async function handleFacultyApproval(event) {
+            const button = event.target.closest('[data-approve-faculty]');
+            if (!button) return;
+
+            const uid = button.dataset.approveFaculty;
+            button.disabled = true;
+            try {
+                const firebase = window.UMSFirebase;
+                await firebase.update(firebase.ref(firebase.database), {
+                    [`users/${uid}/status`]: 'Active',
+                    [`teachers/${uid}/status`]: 'Active'
+                });
+                UMSApp.toast('Faculty account approved. They can now sign in.', 'success');
+                await loadPendingFacultyApprovals();
+            } catch (error) {
+                console.error('Unable to approve faculty registration:', error);
+                UMSApp.toast('Approval failed. Check Firebase database rules and try again.', 'error');
+                button.disabled = false;
+            }
+        }
+
+        function escapeApprovalText(value) {
+            return String(value || '').replace(/[&<>"']/g, character => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[character]));
+        }
+
+        function renderTeachers() {
+            const teachers = UMSStorage.getData('teachers');
+            const courses = UMSStorage.getData('courses');
+            const search = document.getElementById('searchTeacherInput').value.toLowerCase();
+            const dept = document.getElementById('teacherDeptFilter').value;
+            const tbody = document.getElementById('teachersMasterTbody');
+
+            const filtered = teachers.filter(t => {
+                const matchesSearch = t.name.toLowerCase().includes(search) ||
+                    t.id.toLowerCase().includes(search) ||
+                    t.email.toLowerCase().includes(search);
+                const matchesDept = dept === 'all' || t.department === dept;
+                return matchesSearch && matchesDept;
+            });
+
+            document.getElementById('teacherCountBadge').textContent = `${filtered.length} Faculty`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 2.5rem;">No faculty members found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(t => {
+                const assignedCourses = courses.filter(c => c.teacherId === t.id).map(c => c.code).join(', ') || 'None';
+
+                return `
+          <tr>
+            <td><strong>${t.id}</strong></td>
+            <td>
+              <div style="font-weight: 700;">${t.name}</div>
+            </td>
+            <td>${t.designation}</td>
+            <td><span class="badge badge-neutral">${t.department}</span></td>
+            <td><span class="badge badge-info">${assignedCourses}</span></td>
+            <td>${t.email}</td>
+            <td>${t.room || 'N/A'}</td>
+            <td>
+              <div style="display: flex; gap: 0.35rem;">
+                <button class="btn btn-outline btn-sm" onclick="editTeacher('${t.id}')">✏️</button>
+                <button class="btn btn-outline btn-sm text-danger" onclick="deleteTeacher('${t.id}')" style="color: var(--danger); border-color: var(--danger);">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        `;
+            }).join('');
+        }
+
+        function openTeacherModal() {
+            document.getElementById('teacherModalTitle').textContent = 'Appoint Faculty Member';
+            document.getElementById('teacherEditId').value = '';
+            document.getElementById('facIdInput').value = 'FAC-10' + (UMSStorage.getData('teachers').length + 1);
+            document.getElementById('facIdInput').readOnly = false;
+            document.getElementById('facNameInput').value = '';
+            document.getElementById('facDesignationInput').value = 'Associate Professor';
+            document.getElementById('facEmailInput').value = '';
+            document.getElementById('facRoomInput').value = '';
+            UMSApp.openModal('teacherModal');
+        }
+
+        function editTeacher(id) {
+            const t = UMSStorage.findData('teachers', item => item.id === id);
+            if (!t) return;
+
+            document.getElementById('teacherModalTitle').textContent = 'Edit Faculty Profile';
+            document.getElementById('teacherEditId').value = t.id;
+            document.getElementById('facIdInput').value = t.id;
+            document.getElementById('facIdInput').readOnly = true;
+            document.getElementById('facNameInput').value = t.name;
+            document.getElementById('facDesignationInput').value = t.designation;
+            document.getElementById('facDeptSelect').value = t.department;
+            document.getElementById('facEmailInput').value = t.email;
+            document.getElementById('facRoomInput').value = t.room || '';
+
+            UMSApp.openModal('teacherModal');
+        }
+
+        function handleSaveTeacher(e) {
+            e.preventDefault();
+            const editId = document.getElementById('teacherEditId').value;
+            const id = document.getElementById('facIdInput').value.trim();
+            const name = document.getElementById('facNameInput').value.trim();
+            const designation = document.getElementById('facDesignationInput').value.trim();
+            const department = document.getElementById('facDeptSelect').value;
+            const email = document.getElementById('facEmailInput').value.trim();
+            const room = document.getElementById('facRoomInput').value.trim();
+
+            if (editId) {
+                UMSStorage.updateData('teachers', editId, {
+                    name,
+                    designation,
+                    department,
+                    email,
+                    room
+                });
+                UMSApp.toast('Faculty record updated.', 'success');
+            } else {
+                if (UMSStorage.findData('teachers', t => t.id === id)) {
+                    UMSApp.toast('A faculty member with this ID already exists.', 'error');
+                    return;
+                }
+                const newTeacher = {
+                    id,
+                    name,
+                    designation,
+                    department,
+                    email,
+                    room,
+                    assignedCourses: [],
+                    status: 'Active'
+                };
+                UMSStorage.addData('teachers', newTeacher);
+                UMSApp.toast('Faculty member appointed successfully.', 'success');
+            }
+
+            UMSApp.closeModal('teacherModal');
+            renderTeachers();
+        }
+
+        function deleteTeacher(id) {
+            if (!confirm(`Are you sure you want to remove faculty member ${id}?`)) return;
+            UMSStorage.deleteData('teachers', id);
+            UMSApp.toast(`Faculty member ${id} removed.`, 'warning');
+            renderTeachers();
+        }
+    </script>
+</body>
+
+</html>

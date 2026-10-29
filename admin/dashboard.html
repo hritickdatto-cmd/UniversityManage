@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Executive Dashboard | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Executive Institutional Dashboard</h1>
+                        <p class="page-description">Live student and faculty records from the university database</p>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <a href="students.html" class="btn btn-primary btn-sm">+ Register Student</a>
+                        <a href="notices.html" class="btn btn-outline btn-sm">📢 Publish Notice</a>
+                    </div>
+                </div>
+
+
+                <div class="stats-cards-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Total Students</h4>
+                            <div class="stat-card-value" id="statStudents">Loading</div>
+                            <div class="stat-card-meta">Firebase student profiles</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--primary-soft); color: var(--primary);">👨‍🎓</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Faculty Members</h4>
+                            <div class="stat-card-value" id="statTeachers">Loading</div>
+                            <div class="stat-card-meta">Firebase teacher profiles</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--secondary-soft); color: var(--secondary);">👩‍🏫</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Departments</h4>
+                            <div class="stat-card-value" id="statDepts">Loading</div>
+                            <div class="stat-card-meta">From student and faculty records</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--info-soft); color: var(--info);">🏢</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>User Accounts</h4>
+                            <div class="stat-card-value" id="statUsers">Loading</div>
+                            <div class="stat-card-meta">Firebase user profiles</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--accent-soft); color: var(--accent);">👥</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Pending Accounts</h4>
+                            <div class="stat-card-value" id="statPending">Loading</div>
+                            <div class="stat-card-meta">Awaiting approval</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--primary-soft); color: var(--primary);">🗓️</div>
+                    </div>
+                </div>
+
+
+                <div style="display: grid; grid-template-columns: 1.25fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-header">
+                            <h2 class="card-title">Departmental Student Enrollment Distribution</h2>
+                            <a href="departments.html" class="btn btn-outline btn-sm">Manage</a>
+                        </div>
+                        <div class="card-body" id="deptBarsContainer">
+
+                        </div>
+                    </div>
+
+
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-header">
+                            <h2 class="card-title">Accounts by Role</h2>
+                        </div>
+                        <div class="card-body" id="roleSummaryContainer">
+                            <p class="text-center">Loading Firebase records...</p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-header">
+                            <h2 class="card-title">Recent Student Admissions</h2>
+                            <a href="students.html" class="btn btn-outline btn-sm">Registry</a>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Student ID</th>
+                                            <th>Name</th>
+                                            <th>Program</th>
+                                            <th>CGPA</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentStudentsTbody">
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-header">
+                            <h2 class="card-title">Recent Faculty</h2>
+                            <a href="teachers.html" class="btn btn-outline btn-sm">Registry</a>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Faculty ID</th>
+                                            <th>Name</th>
+                                            <th>Department</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentTeachersTbody">
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async() => {
+            const ctx = AdminPortal.init('dashboard', 'Executive Dashboard');
+            if (!ctx) return;
+
+            const firebase = window.UMSFirebase;
+            if (!firebase) {
+                UMSAuth.logout('../login.html?role=admin');
+                return;
+            }
+
+            const authenticatedUser = await new Promise((resolve) => {
+                const unsubscribe = firebase.onAuthStateChanged(firebase.auth, (user) => {
+                    unsubscribe();
+                    resolve(user);
+                });
+            });
+            if (!authenticatedUser || authenticatedUser.uid !== ctx.user.uid) {
+                UMSAuth.logout('../login.html?role=admin');
+                return;
+            }
+
+            const databaseData = {
+                students: null,
+                teachers: null,
+                users: null
+            };
+            const loaded = {
+                students: false,
+                teachers: false,
+                users: false
+            };
+            const loadErrors = {
+                students: false,
+                teachers: false,
+                users: false
+            };
+            const escapeHTML = value => String(value == null ? '' : value).replace(/[&<>"']/g, character => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[character]));
+            const toRecords = value => Object.entries(value || {})
+                .filter(([, record]) => record && typeof record === 'object')
+                .map(([uid, record]) => ({...record,
+                    uid
+                }));
+
+            function renderDashboard() {
+                if (!Object.values(loaded).every(Boolean)) return;
+
+                const users = toRecords(databaseData.users);
+                const userByUid = Object.fromEntries(users.map(user => [user.uid, user]));
+                const students = toRecords(databaseData.students).map(student => ({
+                    ...student,
+                    createdAt: student.createdAt || (userByUid[student.uid] && userByUid[student.uid].createdAt) || ''
+                }));
+                const teachers = toRecords(databaseData.teachers).map(teacher => ({
+                    ...teacher,
+                    createdAt: teacher.createdAt || (userByUid[teacher.uid] && userByUid[teacher.uid].createdAt) || ''
+                }));
+                const sortRecent = records => records.sort((a, b) =>
+                    String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
+                );
+                const pendingUsers = users.filter(user => String(user.status || '').toLowerCase() === 'pending');
+                const departments = [...new Set([...students, ...teachers]
+                    .map(record => String(record.department || '').trim())
+                    .filter(Boolean))].sort();
+
+                document.getElementById('statStudents').textContent = loadErrors.students ? '—' : students.length;
+                document.getElementById('statTeachers').textContent = loadErrors.teachers ? '—' : teachers.length;
+                document.getElementById('statDepts').textContent = loadErrors.students || loadErrors.teachers ? '—' : departments.length;
+                document.getElementById('statUsers').textContent = loadErrors.users ? '—' : users.length;
+                document.getElementById('statPending').textContent = loadErrors.users ? '—' : pendingUsers.length;
+
+                const deptContainer = document.getElementById('deptBarsContainer');
+                if (loadErrors.students) {
+                    deptContainer.innerHTML = '<p class="text-center">Student records could not be loaded from Firebase.</p>';
+                } else if (!students.length) {
+                    deptContainer.innerHTML = '<p class="text-center">No student records found in Firebase.</p>';
+                } else {
+                    const departmentCounts = students.reduce((counts, student) => {
+                        const department = String(student.department || 'Unassigned').trim();
+                        counts[department] = (counts[department] || 0) + 1;
+                        return counts;
+                    }, {});
+                    const maxCount = Math.max(...Object.values(departmentCounts));
+                    deptContainer.innerHTML = Object.entries(departmentCounts).map(([department, count]) => `
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem;">
+                            <span>${escapeHTML(department)}</span>
+                            <span>${count} Students</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${Math.round((count / maxCount) * 100)}%;"></div>
+                        </div>
+                    </div>
+                `).join('');
+                }
+
+                const roleCounts = users.reduce((counts, user) => {
+                    const role = String(user.role || 'unknown').toLowerCase();
+                    counts[role] = (counts[role] || 0) + 1;
+                    return counts;
+                }, {});
+                document.getElementById('roleSummaryContainer').innerHTML = loadErrors.users ?
+                    '<p class="text-center">User records could not be loaded from Firebase.</p>' : Object.keys(roleCounts).length ?
+                    Object.entries(roleCounts).map(([role, count]) => `
+                    <div style="display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--border-color);">
+                        <span style="text-transform: capitalize;">${escapeHTML(role)}</span>
+                        <strong>${count}</strong>
+                    </div>
+                `).join('') : '<p class="text-center">No user profiles found in Firebase.</p>';
+
+                const recentStudents = sortRecent(students).slice(0, 4);
+                document.getElementById('recentStudentsTbody').innerHTML = loadErrors.students ?
+                    '<tr><td colspan="4" class="text-center">Student records could not be loaded from Firebase.</td></tr>' : recentStudents.length ? recentStudents.map(student => `
+                <tr>
+                    <td><strong>${escapeHTML(student.id || '—')}</strong></td>
+                    <td>${escapeHTML(student.name || '—')}</td>
+                    <td>${escapeHTML(student.program || student.department || '—')}</td>
+                    <td><strong>${Number.isFinite(Number(student.cgpa)) && student.cgpa !== '' ? Number(student.cgpa).toFixed(2) : '—'}</strong></td>
+                </tr>
+            `).join('') : '<tr><td colspan="4" class="text-center">No student records found in Firebase.</td></tr>';
+
+                const recentTeachers = sortRecent(teachers).slice(0, 4);
+                document.getElementById('recentTeachersTbody').innerHTML = loadErrors.teachers ?
+                    '<tr><td colspan="4" class="text-center">Teacher records could not be loaded from Firebase.</td></tr>' : recentTeachers.length ? recentTeachers.map(teacher => `
+                <tr>
+                    <td><strong>${escapeHTML(teacher.id || '—')}</strong></td>
+                    <td>${escapeHTML(teacher.name || '—')}</td>
+                    <td>${escapeHTML(teacher.department || '—')}</td>
+                    <td>${escapeHTML(teacher.status || '—')}</td>
+                </tr>
+            `).join('') : '<tr><td colspan="4" class="text-center">No teacher records found in Firebase.</td></tr>';
+            }
+
+            for (const branch of Object.keys(databaseData)) {
+                firebase.onValue(
+                    firebase.ref(firebase.database, branch),
+                    snapshot => {
+                        databaseData[branch] = snapshot.val() || {};
+                        loadErrors[branch] = false;
+                        loaded[branch] = true;
+                        renderDashboard();
+                    },
+                    error => {
+                        console.error(`Could not read ${branch} from Firebase.`, error);
+                        databaseData[branch] = {};
+                        loadErrors[branch] = true;
+                        loaded[branch] = true;
+                        renderDashboard();
+                    }
+                );
+            }
+        });
+    </script>
+</body>
+
+</html>

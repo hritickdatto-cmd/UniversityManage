@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Registration | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Course Registration Portal</h1>
+                        <p class="page-description">Semester Fall 2026 &bull; Maximum allowable credit limit: 18.0 Credits</p>
+                    </div>
+                    <div class="table-progress-wrap" style="background: var(--bg-surface); padding: 0.5rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); min-width: 240px;">
+                        <div style="font-size: 0.85rem; font-weight: 600;">Load: <span id="creditLoadSummary">6.0 / 18.0 Credits</span></div>
+                        <div class="progress-bar" style="width: 100px;">
+                            <div class="progress-fill" id="creditProgressBar" style="width: 33%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">Currently Enrolled Courses</h2>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Courses officially registered for the active academic term</p>
+                        </div>
+                        <span class="badge badge-success" id="enrolledCoursesCountBadge">2 Courses Registered</span>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Course Code</th>
+                                        <th>Course Title</th>
+                                        <th>Credits</th>
+                                        <th>Faculty Instructor</th>
+                                        <th>Section / Room</th>
+                                        <th>Schedule</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="registeredCoursesTbody">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Open Departmental Course Catalog</h2>
+                        <div style="display: flex; gap: 0.75rem; align-items: center;">
+                            <input type="text" id="catalogSearchInput" class="form-control" placeholder="Search catalog..." style="width: 200px; padding: 0.35rem 0.65rem; font-size: 0.85rem;">
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Course Code</th>
+                                        <th>Course Title</th>
+                                        <th>Credits</th>
+                                        <th>Faculty</th>
+                                        <th>Schedule</th>
+                                        <th>Seats Available</th>
+                                        <th>Registration</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="catalogCoursesTbody">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/students.js"></script>
+    <script>
+        let activeStudent = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = StudentPortal.init('courses', 'Course Registration');
+            if (!ctx) return;
+            activeStudent = ctx.student;
+
+            renderAllCourses();
+
+            document.getElementById('catalogSearchInput').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                renderCatalog(query);
+            });
+        });
+
+        function renderAllCourses() {
+            const enrolledIds = StudentPortal.getEnrolledCourseIds(activeStudent.id);
+            const allCourses = UMSStorage.getData('courses');
+
+            // 1. Registered Courses
+            const registeredList = allCourses.filter(c => enrolledIds.includes(c.id));
+            const registeredTbody = document.getElementById('registeredCoursesTbody');
+            const totalCredits = registeredList.reduce((sum, c) => sum + c.credits, 0);
+
+            document.getElementById('creditLoadSummary').textContent = `${totalCredits.toFixed(1)} / 18.0 Credits`;
+            const pct = Math.min((totalCredits / 18.0) * 100, 100);
+            document.getElementById('creditProgressBar').style.width = `${pct}%`;
+            document.getElementById('enrolledCoursesCountBadge').textContent = `${registeredList.length} Courses Registered`;
+
+            if (registeredList.length === 0) {
+                registeredTbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center" style="padding: 2.5rem;">
+              <div class="empty-state-icon">📚</div>
+              <div class="empty-state-title">No Enrolled Courses Found</div>
+              <p class="empty-state-desc">Select and register approved courses from the open course catalog below.</p>
+            </td>
+          </tr>
+        `;
+            } else {
+                registeredTbody.innerHTML = registeredList.map(c => `
+          <tr>
+            <td><strong>${c.code}</strong></td>
+            <td>${c.title}</td>
+            <td><span class="badge badge-neutral">${c.credits.toFixed(1)} CR</span></td>
+            <td>${c.teacherName}</td>
+            <td>Sec ${c.section} &bull; ${c.room}</td>
+            <td>${c.schedule}</td>
+            <td>
+              <button class="btn btn-outline btn-sm text-danger" onclick="handleDropCourse('${c.id}')" style="color: var(--danger); border-color: var(--danger);">
+                Drop Course
+              </button>
+            </td>
+          </tr>
+        `).join('');
+            }
+
+            // 2. Render Catalog
+            renderCatalog();
+        }
+
+        function renderCatalog(filter = '') {
+            const enrolledIds = StudentPortal.getEnrolledCourseIds(activeStudent.id);
+            const allCourses = UMSStorage.getData('courses');
+            const catalogTbody = document.getElementById('catalogCoursesTbody');
+
+            const filtered = allCourses.filter(c => {
+                const matchesQuery = c.title.toLowerCase().includes(filter) || c.code.toLowerCase().includes(filter);
+                return matchesQuery;
+            });
+
+            if (filtered.length === 0) {
+                catalogTbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 2rem;">No matching courses found in catalog.</td></tr>`;
+                return;
+            }
+
+            catalogTbody.innerHTML = filtered.map(c => {
+                        const isRegistered = enrolledIds.includes(c.id);
+                        const availableSeats = c.capacity - c.enrolled;
+                        const isFull = availableSeats <= 0;
+
+                        return `
+          <tr>
+            <td><strong>${c.code}</strong></td>
+            <td>${c.title}</td>
+            <td>${c.credits.toFixed(1)} CR</td>
+            <td>${c.teacherName}</td>
+            <td>${c.schedule}</td>
+            <td>
+              <span class="badge ${availableSeats > 5 ? 'badge-success' : 'badge-warning'}">
+                ${availableSeats} / ${c.capacity} Open
+              </span>
+            </td>
+            <td>
+              ${isRegistered ? `
+                <span class="badge badge-info">Registered</span>
+              ` : isFull ? `
+                <span class="badge badge-danger">Section Full</span>
+              ` : `
+                <button class="btn btn-primary btn-sm" onclick="handleRegisterCourse('${c.id}')">
+                  + Register
+                </button>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function handleRegisterCourse(courseId) {
+      const res = StudentPortal.enrollCourse(activeStudent.id, courseId);
+      if (res.success) {
+        UMSApp.toast(res.message, 'success');
+        renderAllCourses();
+      } else {
+        UMSApp.toast(res.message, 'error');
+      }
+    }
+
+    function handleDropCourse(courseId) {
+      if (!confirm('Are you sure you want to drop this course? Your reserved seat will be forfeited.')) {
+        return;
+      }
+      const res = StudentPortal.dropCourse(activeStudent.id, courseId);
+      if (res.success) {
+        UMSApp.toast(res.message, 'warning');
+        renderAllCourses();
+      } else {
+        UMSApp.toast(res.message, 'error');
+      }
+    }
+    </script>
+</body>
+
+</html>

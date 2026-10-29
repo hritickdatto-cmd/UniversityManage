@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Management | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Academic Departments & Faculties</h1>
+                        <p class="page-description">Oversee institutional faculties, appointed department chairs, and student populations</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openDeptModal()">
+            <span>➕ Establish New Department</span>
+          </button>
+                </div>
+
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">University Departments</h2>
+                        <input type="text" id="searchDeptInput" class="form-control" placeholder="Search department name or code..." style="width: 260px;">
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Dept Code</th>
+                                        <th>Department Name</th>
+                                        <th>Department Head / Chair</th>
+                                        <th>Enrolled Students</th>
+                                        <th>Instructional Faculty</th>
+                                        <th>Established</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="departmentsTbody">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="deptModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title" id="deptModalTitle">Establish Department</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="deptForm">
+                <input type="hidden" id="deptEditId">
+                <div class="modal-body">
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="deptCodeInput">Dept Code <span class="required">*</span></label>
+                            <input type="text" id="deptCodeInput" class="form-control" required placeholder="e.g. ME">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="deptNameInput">Department Name <span class="required">*</span></label>
+                            <input type="text" id="deptNameInput" class="form-control" required placeholder="Mechanical Engineering">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="deptHeadInput">Head of Department <span class="required">*</span></label>
+                        <input type="text" id="deptHeadInput" class="form-control" required placeholder="Dr. Department Chair">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="deptEstInput">Year Established</label>
+                        <input type="number" id="deptEstInput" class="form-control" value="2026" min="1900" max="2099">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="UMSApp.closeModal('deptModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Save Department</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AdminPortal.init('departments', 'Departments');
+            renderDepartments();
+
+            document.getElementById('searchDeptInput').addEventListener('input', renderDepartments);
+            document.getElementById('deptForm').addEventListener('submit', handleSaveDept);
+        });
+
+        function renderDepartments() {
+            const depts = UMSStorage.getData('departments');
+            const students = UMSStorage.getData('students');
+            const teachers = UMSStorage.getData('teachers');
+            const search = document.getElementById('searchDeptInput').value.toLowerCase();
+            const tbody = document.getElementById('departmentsTbody');
+
+            const filtered = depts.filter(d => d.name.toLowerCase().includes(search) || d.code.toLowerCase().includes(search));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 2.5rem;">No matching departments found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(d => {
+                const studentCount = students.filter(s => s.department === d.code).length || d.totalStudents;
+                const teacherCount = teachers.filter(t => t.department === d.code).length || d.totalTeachers;
+
+                return `
+          <tr>
+            <td><span class="dept-code">${d.code}</span></td>
+            <td><strong>${d.name}</strong></td>
+            <td>${d.head}</td>
+            <td><strong>${studentCount}</strong> Students</td>
+            <td><strong>${teacherCount}</strong> Teachers</td>
+            <td>${d.established || '2005'}</td>
+            <td>
+              <div style="display: flex; gap: 0.35rem;">
+                <button class="btn btn-outline btn-sm" onclick="editDept('${d.id}')">✏️</button>
+                <button class="btn btn-outline btn-sm text-danger" onclick="deleteDept('${d.id}')" style="color: var(--danger); border-color: var(--danger);">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        `;
+            }).join('');
+        }
+
+        function openDeptModal() {
+            document.getElementById('deptModalTitle').textContent = 'Establish Department';
+            document.getElementById('deptEditId').value = '';
+            document.getElementById('deptCodeInput').value = '';
+            document.getElementById('deptCodeInput').readOnly = false;
+            document.getElementById('deptNameInput').value = '';
+            document.getElementById('deptHeadInput').value = '';
+            document.getElementById('deptEstInput').value = '2026';
+            UMSApp.openModal('deptModal');
+        }
+
+        function editDept(id) {
+            const d = UMSStorage.findData('departments', item => item.id === id);
+            if (!d) return;
+
+            document.getElementById('deptModalTitle').textContent = 'Edit Department';
+            document.getElementById('deptEditId').value = d.id;
+            document.getElementById('deptCodeInput').value = d.code;
+            document.getElementById('deptCodeInput').readOnly = true;
+            document.getElementById('deptNameInput').value = d.name;
+            document.getElementById('deptHeadInput').value = d.head;
+            document.getElementById('deptEstInput').value = d.established || '2026';
+
+            UMSApp.openModal('deptModal');
+        }
+
+        function handleSaveDept(e) {
+            e.preventDefault();
+            const editId = document.getElementById('deptEditId').value;
+            const code = document.getElementById('deptCodeInput').value.trim().toUpperCase();
+            const name = document.getElementById('deptNameInput').value.trim();
+            const head = document.getElementById('deptHeadInput').value.trim();
+            const established = document.getElementById('deptEstInput').value;
+
+            if (editId) {
+                UMSStorage.updateData('departments', editId, {
+                    name,
+                    head,
+                    established
+                });
+                UMSApp.toast('Department updated successfully.', 'success');
+            } else {
+                const newDept = {
+                    id: 'DEPT-' + code,
+                    code,
+                    name,
+                    head,
+                    established,
+                    totalStudents: 0,
+                    totalTeachers: 0
+                };
+                UMSStorage.addData('departments', newDept);
+                UMSApp.toast('Department established successfully.', 'success');
+            }
+
+            UMSApp.closeModal('deptModal');
+            renderDepartments();
+        }
+
+        function deleteDept(id) {
+            if (!confirm(`Are you sure you want to delete department ${id}?`)) return;
+            UMSStorage.deleteData('departments', id);
+            UMSApp.toast('Department deleted.', 'warning');
+            renderDepartments();
+        }
+    </script>
+</body>
+
+</html>

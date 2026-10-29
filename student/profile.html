@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Institutional Student Dossier</h1>
+                        <p class="page-description">Student information from university records</p>
+                    </div>
+                    <button id="editProfileButton" class="btn btn-primary btn-sm" onclick="openEditProfileModal()" disabled>
+            <span>✏️ Edit Profile Information</span>
+          </button>
+                </div>
+
+                <p id="profileLoadState">Loading profile from Firebase...</p>
+
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-body" style="display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
+                        <div style="width: 100px; height: 100px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 2.25rem; font-weight: 800; box-shadow: var(--shadow-md);"
+                            id="viewAvatar">
+
+                        </div>
+                        <div style="flex: 1; min-width: 250px;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem;">
+                                <h2 style="font-size: 1.6rem; font-weight: 800;" id="viewName"></h2>
+                                <span class="badge badge-success" id="viewStatus" hidden></span>
+                            </div>
+                            <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0.5rem;" id="viewProgram" hidden></p>
+                            <div style="display: flex; gap: 1.5rem; font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap;">
+                                <span id="viewIdRow" hidden><strong>Student ID:</strong> <span id="viewId"></span></span>
+                                <span id="viewBatchRow" hidden><strong>Batch:</strong> <span id="viewBatch"></span></span>
+                                <span id="viewSemesterRow" hidden><strong>Current Term:</strong> <span id="viewSemester"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Academic Details</h3>
+                        </div>
+                        <div class="card-body">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                                <tr id="deptRow" style="border-bottom: 1px solid var(--border-color);" hidden>
+                                    <td style="padding: 0.75rem 0; color: var(--text-muted); width: 40%;">Department</td>
+                                    <td style="padding: 0.75rem 0; font-weight: 600;" id="tableDept"></td>
+                                </tr>
+                                <tr id="creditsRow" style="border-bottom: 1px solid var(--border-color);" hidden>
+                                    <td style="padding: 0.75rem 0; color: var(--text-muted);">Curriculum Credits</td>
+                                    <td style="padding: 0.75rem 0; font-weight: 600;" id="tableCredits"></td>
+                                </tr>
+                                <tr id="cgpaRow" style="border-bottom: 1px solid var(--border-color);" hidden>
+                                    <td style="padding: 0.75rem 0; color: var(--text-muted);">CGPA Standing</td>
+                                    <td style="padding: 0.75rem 0; font-weight: 600; color: var(--primary);" id="tableCgpa"></td>
+                                </tr>
+                                <tr id="programRow" hidden>
+                                    <td style="padding: 0.75rem 0; color: var(--text-muted);">Program</td>
+                                    <td style="padding: 0.75rem 0; font-weight: 600;" id="tableProgram"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Personal & Guardian Contacts</h3>
+                        </div>
+                        <div class="card-body">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                                <tr id="emailRow" style="border-bottom: 1px solid var(--border-color);" hidden>
+                                    <td style="padding: 0.75rem 0; color: var(--text-muted); width: 40%;">Institutional Email</td>
+                                    <td style="padding: 0.75rem 0; font-weight: 600;" id="tableEmail"></td>
+                                </tr>
+                                <tr id="phoneRow" style="border-bottom: 1px solid var(--border-color);" hidden>
+                                    <td style="padding: 0.75rem 0; color: var(--text-muted);">Mobile Contact</td>
+                                    <td style="padding: 0.75rem 0; font-weight: 600;" id="tablePhone"></td>
+                                </tr>
+                                <tr id="dobRow" style="border-bottom: 1px solid var(--border-color);" hidden>
+                                    <td style="padding: 0.75rem 0; color: var(--text-muted);">Date of Birth</td>
+                                    <td style="padding: 0.75rem 0; font-weight: 600;" id="tableDob"></td>
+                                </tr>
+                                <tr id="genderRow" style="border-bottom: 1px solid var(--border-color);" hidden>
+                                    <td style="padding: 0.75rem 0; color: var(--text-muted);">Gender</td>
+                                    <td style="padding: 0.75rem 0; font-weight: 600;" id="tableGender"></td>
+                                </tr>
+                                <tr id="addressRow" style="border-bottom: 1px solid var(--border-color);" hidden>
+                                    <td style="padding: 0.75rem 0; color: var(--text-muted);">Residential Address</td>
+                                    <td style="padding: 0.75rem 0; font-weight: 600;" id="tableAddress"></td>
+                                </tr>
+                                <tr id="guardianRow" hidden>
+                                    <td style="padding: 0.75rem 0; color: var(--text-muted);">Primary Guardian</td>
+                                    <td style="padding: 0.75rem 0; font-weight: 600;" id="tableGuardian"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+
+    <div class="modal-overlay" id="editProfileModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Modify Student Records</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="editProfileForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="editName">Full Legal Name <span class="required">*</span></label>
+                        <input type="text" id="editName" class="form-control" required>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="editPhone">Contact Telephone <span class="required">*</span></label>
+                            <input type="tel" id="editPhone" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="editDob">Date of Birth</label>
+                            <input type="date" id="editDob" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="editAddress">Permanent Residential Address</label>
+                        <input type="text" id="editAddress" class="form-control">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="editGuardianName">Guardian Name</label>
+                            <input type="text" id="editGuardianName" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="editGuardianPhone">Guardian Contact</label>
+                            <input type="tel" id="editGuardianPhone" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="UMSApp.closeModal('editProfileModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Save Dossier Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/students.js"></script>
+    <script>
+        let activeStudent = null;
+        let activeUid = null;
+
+        document.addEventListener('DOMContentLoaded', initializeProfile);
+
+        async function initializeProfile() {
+            const user = UMSAuth.requireAuth(['student'], '../login.html');
+            if (!user) return;
+
+            activeUid = user.uid;
+            try {
+                const firebase = window.UMSFirebase;
+                if (!firebase || !activeUid) throw new Error('Firebase profile is unavailable.');
+
+                const [studentSnapshot, userSnapshot] = await Promise.all([
+                    firebase.get(firebase.ref(firebase.database, `students/${activeUid}`)),
+                    firebase.get(firebase.ref(firebase.database, `users/${activeUid}`))
+                ]);
+                const student = studentSnapshot.val();
+                const userProfile = userSnapshot.val();
+                if (!student && !userProfile) throw new Error('No Firebase profile was found.');
+
+                activeStudent = {
+                    ...(userProfile || {}),
+                    ...(student || {}),
+                    uid: activeUid,
+                    department: (userProfile && userProfile.department) || (student && student.department) || ''
+                };
+
+                StudentPortal.renderSidebar('profile', activeStudent);
+                StudentPortal.renderTopbar('Student Profile', activeStudent);
+                renderDossier();
+                document.getElementById('profileLoadState').hidden = true;
+                document.getElementById('editProfileButton').disabled = !student;
+                document.getElementById('editProfileForm').addEventListener('submit', saveProfile);
+            } catch (error) {
+                console.error('Could not load the student profile from Firebase.', error);
+                document.getElementById('profileLoadState').textContent = error.message;
+            }
+        }
+
+        async function saveProfile(event) {
+            event.preventDefault();
+            const name = document.getElementById('editName').value.trim();
+            const updates = {
+                name,
+                phone: document.getElementById('editPhone').value.trim(),
+                dob: document.getElementById('editDob').value,
+                address: document.getElementById('editAddress').value.trim(),
+                guardianName: document.getElementById('editGuardianName').value.trim(),
+                guardianPhone: document.getElementById('editGuardianPhone').value.trim(),
+                avatar: name.split(' ').map(part => part[0]).join('').substring(0, 2).toUpperCase()
+            };
+            const firebaseUpdates = {};
+            Object.entries(updates).forEach(([field, value]) => {
+                firebaseUpdates[`students/${activeUid}/${field}`] = value;
+            });
+            ['name', 'phone', 'avatar'].forEach(field => {
+                firebaseUpdates[`users/${activeUid}/${field}`] = updates[field];
+            });
+
+            try {
+                const firebase = window.UMSFirebase;
+                await firebase.update(firebase.ref(firebase.database), firebaseUpdates);
+                activeStudent = {...activeStudent,
+                    ...updates
+                };
+                renderDossier();
+                StudentPortal.renderSidebar('profile', activeStudent);
+                StudentPortal.renderTopbar('Student Profile', activeStudent);
+                UMSApp.closeModal('editProfileModal');
+                UMSApp.toast('Profile updated in Firebase.', 'success');
+            } catch (error) {
+                console.error('Could not save the student profile to Firebase.', error);
+                UMSApp.toast('Profile could not be saved. Please try again.', 'error');
+            }
+        }
+
+        function setProfileValue(elementId, rowId, value) {
+            const element = document.getElementById(elementId);
+            const row = rowId ? document.getElementById(rowId) : null;
+            const hasValue = value !== null && value !== undefined && value !== '';
+            if (element) element.textContent = hasValue ? value : '';
+            if (row) row.hidden = !hasValue;
+        }
+
+        function renderDossier() {
+            setProfileValue('viewAvatar', null, activeStudent.avatar || '');
+            setProfileValue('viewName', null, activeStudent.name);
+            setProfileValue('viewStatus', null, activeStudent.status);
+            document.getElementById('viewStatus').hidden = !activeStudent.status;
+            setProfileValue('viewProgram', null, activeStudent.program);
+            document.getElementById('viewProgram').hidden = !activeStudent.program;
+            setProfileValue('viewId', 'viewIdRow', activeStudent.id || activeStudent.studentId);
+            setProfileValue('viewBatch', 'viewBatchRow', activeStudent.batch);
+            setProfileValue('viewSemester', 'viewSemesterRow', activeStudent.currentSemester);
+            document.getElementById('viewSemester').textContent = activeStudent.currentSemester || '';
+
+            setProfileValue('tableDept', 'deptRow', activeStudent.department);
+            setProfileValue('tableCredits', 'creditsRow', activeStudent.totalCredits);
+            const cgpa = Number(activeStudent.cgpa);
+            setProfileValue('tableCgpa', 'cgpaRow', Number.isFinite(cgpa) && activeStudent.cgpa !== '' ? `${cgpa.toFixed(2)} / 4.00` : '');
+            setProfileValue('tableProgram', 'programRow', activeStudent.program);
+            setProfileValue('tableEmail', 'emailRow', activeStudent.email);
+            setProfileValue('tablePhone', 'phoneRow', activeStudent.phone);
+            setProfileValue('tableDob', 'dobRow', activeStudent.dob);
+            setProfileValue('tableGender', 'genderRow', activeStudent.gender);
+            setProfileValue('tableAddress', 'addressRow', activeStudent.address);
+
+            const guardian = [activeStudent.guardianName, activeStudent.guardianPhone].filter(Boolean).join(' · ');
+            setProfileValue('tableGuardian', 'guardianRow', guardian);
+        }
+
+        function openEditProfileModal() {
+            if (!activeStudent) return;
+            document.getElementById('editName').value = activeStudent.name || '';
+            document.getElementById('editPhone').value = activeStudent.phone || '';
+            document.getElementById('editDob').value = activeStudent.dob || '';
+            document.getElementById('editAddress').value = activeStudent.address || '';
+            document.getElementById('editGuardianName').value = activeStudent.guardianName || '';
+            document.getElementById('editGuardianPhone').value = activeStudent.guardianPhone || '';
+
+            UMSApp.openModal('editProfileModal');
+        }
+    </script>
+</body>
+
+</html>

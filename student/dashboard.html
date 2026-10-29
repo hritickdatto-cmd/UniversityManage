@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title" id="greetingTitle">Student Dashboard</h1>
+                        <p class="page-description" id="greetingDesc"></p>
+                    </div>
+                    <a href="profile.html" class="btn btn-outline btn-sm">Student Profile</a>
+                </div>
+
+                <p id="dashboardLoadState">Loading student information from Firebase...</p>
+
+                <div class="stats-cards-grid">
+                    <div class="stat-card" id="cgpaCard" hidden>
+                        <div class="stat-card-info">
+                            <h4>Cumulative GPA</h4>
+                            <div class="stat-card-value" id="cardCgpa"></div>
+                            <div class="stat-card-meta">Scale of 4.00</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--primary-soft); color: var(--primary);">🎓</div>
+                    </div>
+                    <div class="stat-card" id="creditsCard" hidden>
+                        <div class="stat-card-info">
+                            <h4>Completed Credits</h4>
+                            <div class="stat-card-value" id="cardCredits"></div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--secondary-soft); color: var(--secondary);">📚</div>
+                    </div>
+                    <div class="stat-card" id="departmentCard" hidden>
+                        <div class="stat-card-info">
+                            <h4>Department</h4>
+                            <div class="stat-card-value" id="cardDepartment"></div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--success-soft); color: var(--success);">🏢</div>
+                    </div>
+                    <div class="stat-card" id="statusCard" hidden>
+                        <div class="stat-card-info">
+                            <h4>Account Status</h4>
+                            <div class="stat-card-value" id="cardStatus"></div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--warning-soft); color: var(--warning);">◉</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-header">
+                            <h2 class="card-title">Academic Information</h2>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <tbody id="academicInfoRows"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-header">
+                            <h2 class="card-title">Student Information</h2>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <tbody id="personalInfoRows"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/students.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
+
+        async function initializeDashboard() {
+            const user = UMSAuth.requireAuth(['student'], '../login.html');
+            if (!user) return;
+
+            const sessionProfile = {...user,
+                id: user.studentId || user.id
+            };
+            StudentPortal.renderSidebar('dashboard', sessionProfile);
+            StudentPortal.renderTopbar('Dashboard', sessionProfile);
+
+            try {
+                const firebase = window.UMSFirebase;
+                if (!firebase || !user.uid) throw new Error('Firebase is unavailable.');
+
+                const [studentSnapshot, userSnapshot] = await Promise.all([
+                    firebase.get(firebase.ref(firebase.database, `students/${user.uid}`)),
+                    firebase.get(firebase.ref(firebase.database, `users/${user.uid}`))
+                ]);
+                const student = studentSnapshot.val();
+                const userProfile = userSnapshot.val();
+                if (!student && !userProfile) throw new Error('No Firebase student record was found.');
+
+                const profile = {
+                    ...(userProfile || {}),
+                    ...(student || {}),
+                    uid: user.uid,
+                    id: (student && student.id) || (userProfile && (userProfile.studentId || userProfile.id)) || '',
+                    department: (userProfile && userProfile.department) || (student && student.department) || ''
+                };
+                StudentPortal.renderSidebar('dashboard', profile);
+                StudentPortal.renderTopbar('Dashboard', profile);
+                renderDashboardProfile(profile);
+                document.getElementById('dashboardLoadState').hidden = true;
+            } catch (error) {
+                console.error('Could not load the student dashboard from Firebase.', error);
+                document.getElementById('dashboardLoadState').textContent = error.message;
+            }
+        }
+
+        function renderDashboardProfile(profile) {
+            const firstName = (profile.name || '').trim().split(/\s+/)[0];
+            document.getElementById('greetingTitle').textContent = firstName ? `Welcome back, ${firstName}` : 'Student Dashboard';
+            document.getElementById('greetingDesc').textContent = [
+                profile.program,
+                profile.department,
+                profile.currentSemester ? `${profile.currentSemester} Semester` : '',
+                profile.id ? `ID: ${profile.id}` : ''
+            ].filter(Boolean).join(' · ');
+
+            setDashboardStat('cgpaCard', 'cardCgpa', profile.cgpa, value => {
+                const cgpa = Number(value);
+                return Number.isFinite(cgpa) ? cgpa.toFixed(2) : value;
+            });
+            setDashboardStat('creditsCard', 'cardCredits', profile.totalCredits);
+            setDashboardStat('departmentCard', 'cardDepartment', profile.department);
+            setDashboardStat('statusCard', 'cardStatus', profile.status);
+
+            renderInfoRows('academicInfoRows', [
+                ['Department', profile.department],
+                ['Program', profile.program],
+                ['Batch', profile.batch],
+                ['Current Semester', profile.currentSemester],
+                ['CGPA', profile.cgpa],
+                ['Completed Credits', profile.totalCredits]
+            ]);
+            renderInfoRows('personalInfoRows', [
+                ['Student ID', profile.id],
+                ['Email', profile.email],
+                ['Phone', profile.phone],
+                ['Status', profile.status],
+                ['Date of Birth', profile.dob],
+                ['Gender', profile.gender],
+                ['Address', profile.address],
+                ['Guardian', profile.guardianName],
+                ['Guardian Phone', profile.guardianPhone]
+            ]);
+        }
+
+        function setDashboardStat(cardId, valueId, value, formatter = value => value) {
+            const hasValue = value !== null && value !== undefined && value !== '';
+            document.getElementById(cardId).hidden = !hasValue;
+            document.getElementById(valueId).textContent = hasValue ? formatter(value) : '';
+        }
+
+        function renderInfoRows(containerId, fields) {
+            const container = document.getElementById(containerId);
+            container.replaceChildren();
+
+            fields.forEach(([label, value]) => {
+                if (value === null || value === undefined || value === '') return;
+
+                const row = document.createElement('tr');
+                const labelCell = document.createElement('td');
+                const valueCell = document.createElement('td');
+                labelCell.textContent = label;
+                valueCell.textContent = value;
+                row.append(labelCell, valueCell);
+                container.appendChild(row);
+            });
+        }
+    </script>
+</body>
+
+</html>

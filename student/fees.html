@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fees & Payments | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Tuition & Financial Account Ledger</h1>
+                        <p class="page-description">Semester Fall 2026 &bull; Transparent Student Billing & Real-Time Clearance</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openPaymentModal()">
+            <span>💳 Make Online Payment</span>
+          </button>
+                </div>
+
+                
+                <div class="stats-cards-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Total Assessment</h4>
+                            <div class="stat-card-value" id="feeTotal">$4,200.00</div>
+                            <div class="stat-card-meta">Invoiced for Fall 2026</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--primary-soft); color: var(--primary);">🧾</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Amount Settled</h4>
+                            <div class="stat-card-value" id="feePaid" style="color: var(--success);">$2,500.00</div>
+                            <div class="stat-card-meta">Verified Payments</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--success-soft); color: var(--success);">✓</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Outstanding Balance</h4>
+                            <div class="stat-card-value" id="feeDue" style="color: var(--danger);">$1,700.00</div>
+                            <div class="stat-card-meta" id="feeStatusBadge">Partially Paid</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--warning-soft); color: var(--warning);">⚠️</div>
+                    </div>
+                </div>
+
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Itemized Semester Invoices</h2>
+                        <span class="badge badge-neutral">Invoice #FEE-2026-001</span>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fee Description</th>
+                                        <th>Billing Category</th>
+                                        <th>Due Date</th>
+                                        <th>Billed Amount</th>
+                                        <th>Payment Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="feeLedgerTbody">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Simulated Payment Clearance</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="paymentForm">
+                <div class="modal-body">
+                    <div style="background: var(--primary-soft); padding: 0.85rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Current Outstanding Due:</div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);" id="modalDueDisplay">$1,700.00</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="payAmount">Payment Amount ($) <span class="required">*</span></label>
+                        <input type="number" id="payAmount" class="form-control" min="1" step="any" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="payMethod">Payment Channel</label>
+                        <select id="payMethod" class="form-control">
+              <option value="Credit/Debit Card (Visa/Mastercard)">Credit / Debit Card (Visa / Mastercard)</option>
+              <option value="Direct Academic Wire / ACH">Direct Academic Wire / ACH</option>
+              <option value="Campus SmartCard Balance">Campus SmartCard Balance</option>
+            </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="cardReference">Reference Note / Transaction Card</label>
+                        <input type="text" id="cardReference" class="form-control" placeholder="•••• •••• •••• 4242" value="•••• •••• •••• 4242">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="UMSApp.closeModal('paymentModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Process Simulated Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/students.js"></script>
+    <script>
+        let activeStudent = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = StudentPortal.init('fees', 'Fees & Payments');
+            if (!ctx) return;
+            activeStudent = ctx.student;
+
+            renderFeesLedger();
+
+            document.getElementById('paymentForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const amt = document.getElementById('payAmount').value;
+                const method = document.getElementById('payMethod').value;
+
+                const res = StudentPortal.payFee(activeStudent.id, amt, method);
+                if (res.success) {
+                    UMSApp.closeModal('paymentModal');
+                    UMSApp.toast(res.message, 'success');
+                    renderFeesLedger();
+                } else {
+                    UMSApp.toast(res.message, 'error');
+                }
+            });
+        });
+
+        function renderFeesLedger() {
+            const fee = UMSStorage.findData('fees', f => f.studentId === activeStudent.id);
+            if (!fee) return;
+
+            document.getElementById('feeTotal').textContent = UMSApp.formatCurrency(fee.total);
+            document.getElementById('feePaid').textContent = UMSApp.formatCurrency(fee.paid);
+            document.getElementById('feeDue').textContent = UMSApp.formatCurrency(fee.due);
+
+            const statusBadge = document.getElementById('feeStatusBadge');
+            statusBadge.innerHTML = `<span class="badge ${fee.due <= 0 ? 'badge-success' : 'badge-warning'}">${fee.status}</span>`;
+
+            const tbody = document.getElementById('feeLedgerTbody');
+            const items = [{
+                name: 'Undergraduate Tuition Fee (15.0 Credits)',
+                cat: 'Tuition',
+                cost: fee.tuitionFee,
+                due: fee.dueDate
+            }, {
+                name: 'Semester Registration & Technology Levy',
+                cat: 'Administrative',
+                cost: fee.semesterFee,
+                due: fee.dueDate
+            }, {
+                name: 'Computing & Science Laboratory Usage',
+                cat: 'Laboratory',
+                cost: fee.labFee,
+                due: fee.dueDate
+            }, {
+                name: 'Digital Library & Research Database Access',
+                cat: 'Library',
+                cost: fee.libraryFee,
+                due: fee.dueDate
+            }];
+
+            tbody.innerHTML = items.map(item => `
+        <tr>
+          <td><strong>${item.name}</strong></td>
+          <td><span class="badge badge-neutral">${item.cat}</span></td>
+          <td>${item.due}</td>
+          <td>${UMSApp.formatCurrency(item.cost)}</td>
+          <td><span class="badge ${fee.due <= 0 ? 'badge-success' : 'badge-warning'}">${fee.status}</span></td>
+        </tr>
+      `).join('');
+        }
+
+        function openPaymentModal() {
+            const fee = UMSStorage.findData('fees', f => f.studentId === activeStudent.id);
+            if (!fee || fee.due <= 0) {
+                UMSApp.toast('Your account ledger is completely cleared. No outstanding dues.', 'info');
+                return;
+            }
+            document.getElementById('modalDueDisplay').textContent = UMSApp.formatCurrency(fee.due);
+            document.getElementById('payAmount').value = fee.due;
+            document.getElementById('payAmount').max = fee.due;
+            UMSApp.openModal('paymentModal');
+        }
+    </script>
+</body>
+
+</html>

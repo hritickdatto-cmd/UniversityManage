@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grades & Results | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Academic Grades & Transcripts</h1>
+                        <p class="page-description">Standard 4.00 Grade Point Average Assessment Matrix</p>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button class="btn btn-primary btn-sm" onclick="openTranscriptModal()">
+              <span>📜 View Official Transcript</span>
+            </button>
+                    </div>
+                </div>
+
+                
+                <div class="stats-cards-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Cumulative CGPA</h4>
+                            <div class="stat-card-value" id="resultsCgpa">3.84</div>
+                            <div class="stat-card-meta">Honors Division Standing</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--primary-soft); color: var(--primary);">🎖️</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Completed Credits</h4>
+                            <div class="stat-card-value" id="resultsCredits">78.0</div>
+                            <div class="stat-card-meta">Out of 144.0 Program Total</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--secondary-soft); color: var(--secondary);">✅</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Latest Term GPA</h4>
+                            <div class="stat-card-value" id="termGpa">3.83</div>
+                            <div class="stat-card-meta">Spring 2026 Assessment</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--success-soft); color: var(--success);">📈</div>
+                    </div>
+                </div>
+
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Detailed Course Grade Entries</h2>
+                        <div class="toolbar-filters">
+                            <select id="semesterFilter" class="form-control" style="width: auto; padding: 0.35rem 0.75rem; font-size: 0.85rem;">
+                <option value="all">All Completed Semesters</option>
+                <option value="Spring 2026">Spring 2026</option>
+              </select>
+                            <input type="text" id="courseSearch" class="form-control" placeholder="Search course code..." style="width: 180px; padding: 0.35rem 0.75rem; font-size: 0.85rem;">
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Semester</th>
+                                        <th>Course Code</th>
+                                        <th>Course Title</th>
+                                        <th>Credits</th>
+                                        <th>Score</th>
+                                        <th>Letter Grade</th>
+                                        <th>Grade Point</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resultsTbody">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="transcriptModal">
+        <div class="modal-dialog" style="max-width: 720px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Official Academic Transcript Record</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body" id="printableTranscriptArea">
+                <div style="text-align: center; border-bottom: 2px solid var(--border-color); padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
+                    <div style="font-size: 1.85rem;">🏛️</div>
+                    <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--primary);">BAUET</h2>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">Office of the Controller of Examinations</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">UNOFFICIAL ISSUED STUDENT TRANSCRIPT</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.875rem; margin-bottom: 1.5rem; background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md);">
+                    <div>
+                        <div><strong>Student Name:</strong> <span id="transName">Alex Harrison</span></div>
+                        <div><strong>Student ID:</strong> <span id="transId">STU-2024-001</span></div>
+                        <div><strong>Department:</strong> CSE</div>
+                    </div>
+                    <div>
+                        <div><strong>Degree:</strong> B.Sc. in Computer Science</div>
+                        <div><strong>CGPA:</strong> <span id="transCgpa">3.84</span> / 4.00</div>
+                        <div><strong>Date of Issue:</strong> September 18, 2026</div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table" style="font-size: 0.85rem;">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Course Title</th>
+                                <th>Credits</th>
+                                <th>Grade</th>
+                                <th>Point</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transcriptModalTbody">
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-sm" onclick="UMSApp.closeModal('transcriptModal')">Close</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Print Transcript</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/students.js"></script>
+    <script>
+        let activeStudent = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = StudentPortal.init('results', 'Grades & Results');
+            if (!ctx) return;
+            activeStudent = ctx.student;
+
+            renderResults();
+
+            document.getElementById('semesterFilter').addEventListener('change', renderResults);
+            document.getElementById('courseSearch').addEventListener('input', renderResults);
+        });
+
+        function renderResults() {
+            const results = UMSStorage.filterData('results', r => r.studentId === activeStudent.id);
+            const semFilter = document.getElementById('semesterFilter').value;
+            const search = document.getElementById('courseSearch').value.toLowerCase();
+            const tbody = document.getElementById('resultsTbody');
+
+            document.getElementById('resultsCgpa').textContent = activeStudent.cgpa.toFixed(2);
+            document.getElementById('resultsCredits').textContent = activeStudent.totalCredits.toFixed(1);
+
+            // Compute latest term GPA
+            const springResults = results.filter(r => r.semester === 'Spring 2026');
+            if (springResults.length > 0) {
+                const totalPoints = springResults.reduce((sum, r) => sum + (r.credits * r.gradePoint), 0);
+                const totalCreds = springResults.reduce((sum, r) => sum + r.credits, 0);
+                const gpa = (totalPoints / totalCreds).toFixed(2);
+                document.getElementById('termGpa').textContent = gpa;
+            }
+
+            const filtered = results.filter(r => {
+                const matchesSem = semFilter === 'all' || r.semester === semFilter;
+                const matchesSearch = r.courseCode.toLowerCase().includes(search) || r.courseTitle.toLowerCase().includes(search);
+                return matchesSem && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 2rem;">No grade entries found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(r => `
+        <tr>
+          <td><span class="badge badge-neutral">${r.semester}</span></td>
+          <td><strong>${r.courseCode}</strong></td>
+          <td>${r.courseTitle}</td>
+          <td>${r.credits.toFixed(1)}</td>
+          <td>${r.marks} / 100</td>
+          <td><span class="badge badge-success">${r.grade}</span></td>
+          <td><strong>${r.gradePoint.toFixed(2)}</strong></td>
+        </tr>
+      `).join('');
+        }
+
+        function openTranscriptModal() {
+            const results = UMSStorage.filterData('results', r => r.studentId === activeStudent.id);
+            document.getElementById('transName').textContent = activeStudent.name;
+            document.getElementById('transId').textContent = activeStudent.id;
+            document.getElementById('transCgpa').textContent = activeStudent.cgpa.toFixed(2);
+
+            const tbody = document.getElementById('transcriptModalTbody');
+            tbody.innerHTML = results.map(r => `
+        <tr>
+          <td><strong>${r.courseCode}</strong></td>
+          <td>${r.courseTitle}</td>
+          <td>${r.credits.toFixed(1)}</td>
+          <td><strong>${r.grade}</strong></td>
+          <td>${r.gradePoint.toFixed(2)}</td>
+        </tr>
+      `).join('');
+
+            UMSApp.openModal('transcriptModal');
+        }
+    </script>
+</body>
+
+</html>

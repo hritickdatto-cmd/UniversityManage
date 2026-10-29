@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Institutional Analytics | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <style>
+        .analytics-tab-bar {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .analytics-tab-btn {
+            padding: 0.75rem 1.25rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: none;
+            transition: all var(--transition-fast);
+        }
+        
+        .analytics-tab-btn:hover {
+            color: var(--primary);
+        }
+        
+        .analytics-tab-btn.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .chart-container-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .chart-bar-rect:hover {
+            opacity: 0.85;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Institutional Analytics & Audit Reports</h1>
+                        <p class="page-description">Statistical intelligence, student distributions, academic grade distribution, and billing clearance</p>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button class="btn btn-outline btn-sm" onclick="window.print()">
+              <span>🖨️ Quick Print</span>
+            </button>
+                        <button class="btn btn-primary btn-sm" onclick="openPrintableSenateReport()">
+              <span>📜 Generate Senate Report</span>
+            </button>
+                    </div>
+                </div>
+
+                
+                <div class="stats-cards-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Total Enrolled</h4>
+                            <div class="stat-card-value" id="kpiStudents">0</div>
+                            <div class="stat-card-meta">All Academic Programs</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--primary-soft); color: var(--primary);">👨‍🎓</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Term Pass Rate</h4>
+                            <div class="stat-card-value" id="kpiPassRate" style="color: var(--success);">0%</div>
+                            <div class="stat-card-meta">CGPA &ge; 2.00 Standing</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--success-soft); color: var(--success);">🎓</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Lecture Attendance</h4>
+                            <div class="stat-card-value" id="kpiAttendance">0%</div>
+                            <div class="stat-card-meta">Campus-Wide Average</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--info-soft); color: var(--info);">📅</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h4>Revenue Recovery</h4>
+                            <div class="stat-card-value" id="kpiFeeRecovery" style="color: var(--secondary);">0%</div>
+                            <div class="stat-card-meta" id="kpiCollectedSub">$0 Collected</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: var(--secondary-soft); color: var(--secondary);">💳</div>
+                    </div>
+                </div>
+
+                
+                <div class="analytics-tab-bar" role="tablist">
+                    <button class="analytics-tab-btn active" data-tab="studentsTab">
+            <span>👥 Student Demographics</span>
+          </button>
+                    <button class="analytics-tab-btn" data-tab="academicTab">
+            <span>📝 Academic & Grades</span>
+          </button>
+                    <button class="analytics-tab-btn" data-tab="attendanceTab">
+            <span>📅 Lecture Attendance</span>
+          </button>
+                    <button class="analytics-tab-btn" data-tab="financialTab">
+            <span>💰 Financial & Revenue</span>
+          </button>
+                </div>
+
+                
+                <div class="tab-panel" id="studentsTab">
+                    <div style="display: grid; grid-template-columns: 1.35fr 1fr; gap: 1.75rem; margin-bottom: 1.75rem;">
+                        
+                        <div class="chart-container-card">
+                            <div class="chart-header">
+                                <div>
+                                    <h2 class="card-title">Students by Department</h2>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem;">Distribution of active scholars across academic schools</p>
+                                </div>
+                            </div>
+                            <div id="chartDeptDistribution"></div>
+                        </div>
+
+                        
+                        <div class="chart-container-card">
+                            <div class="chart-header">
+                                <div>
+                                    <h2 class="card-title">Gender Demographics</h2>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem;">Diversity representation</p>
+                                </div>
+                            </div>
+                            <div id="chartGenderDistribution"></div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Cohort & Batch Intake Analytics</h2>
+                        </div>
+                        <div class="card-body">
+                            <div id="chartBatchDistribution"></div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="tab-panel" id="academicTab" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 1.25fr 1fr; gap: 1.75rem; margin-bottom: 1.75rem;">
+                        
+                        <div class="chart-container-card">
+                            <div class="chart-header">
+                                <div>
+                                    <h2 class="card-title">GPA Tier Distribution</h2>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem;">Breakdown of academic grade points across all exams</p>
+                                </div>
+                            </div>
+                            <div id="chartGpaDistribution"></div>
+                        </div>
+
+                        
+                        <div class="chart-container-card">
+                            <div class="chart-header">
+                                <div>
+                                    <h2 class="card-title">Pass / Fail Assessment</h2>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem;">Minimum threshold: GPA &ge; 2.00</p>
+                                </div>
+                            </div>
+                            <div id="chartPassFailDonut"></div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Course-Wise Average Exam Score (Scale 0 - 100)</h2>
+                        </div>
+                        <div class="card-body">
+                            <div id="chartCourseScores"></div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="tab-panel" id="attendanceTab" style="display: none;">
+                    <div class="chart-container-card" style="margin-bottom: 1.75rem;">
+                        <div class="chart-header">
+                            <div>
+                                <h2 class="card-title">Course-Wise Attendance Percentage</h2>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem;">Minimum examination eligibility threshold: 75.0%</p>
+                            </div>
+                            <span class="badge badge-success" id="overallAttBadge">Campus Avg: 89.2%</span>
+                        </div>
+                        <div id="chartCourseAttendance"></div>
+                    </div>
+
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Institutional Attendance Compliance Summary</h2>
+                        </div>
+                        <div class="card-body" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; text-align: center;">
+                            <div style="background: var(--bg-main); padding: 1.5rem; border-radius: var(--radius-md);">
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">Total Lectures Conducted</div>
+                                <div style="font-size: 2rem; font-weight: 800; color: var(--primary);" id="totalClassesVal">0</div>
+                            </div>
+                            <div style="background: var(--bg-main); padding: 1.5rem; border-radius: var(--radius-md);">
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">Present Attendances Logged</div>
+                                <div style="font-size: 2rem; font-weight: 800; color: var(--success);" id="totalPresentVal">0</div>
+                            </div>
+                            <div style="background: var(--bg-main); padding: 1.5rem; border-radius: var(--radius-md);">
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">Absences Recorded</div>
+                                <div style="font-size: 2rem; font-weight: 800; color: var(--danger);" id="totalAbsentVal">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="tab-panel" id="financialTab" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; margin-bottom: 1.75rem;">
+                        
+                        <div class="chart-container-card">
+                            <div class="chart-header">
+                                <div>
+                                    <h2 class="card-title">Payment Settlement Status</h2>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem;">Student accounts ledger segmentation</p>
+                                </div>
+                            </div>
+                            <div id="chartFeeStatusDonut"></div>
+                        </div>
+
+                        
+                        <div class="chart-container-card" style="display: flex; flex-direction: column; justify-content: center;">
+                            <h2 class="card-title" style="margin-bottom: 1rem;">Tuition Balance Clearance</h2>
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.35rem;">
+                                        <span>Gross Assessed Billing:</span>
+                                        <strong id="finBilledTotal">$0.00</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.35rem;">
+                                        <span>Collected & Verified:</span>
+                                        <strong style="color: var(--success);" id="finCollectedTotal">$0.00</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.6rem;">
+                                        <span>Outstanding Dues:</span>
+                                        <strong style="color: var(--danger);" id="finDueTotal">$0.00</strong>
+                                    </div>
+                                    <div class="progress-bar" style="height: 12px;">
+                                        <div class="progress-fill success" id="finProgressBar" style="width: 50%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="senateReportModal">
+        <div class="modal-dialog" style="max-width: 780px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Executive Senate Academic Audit Dossier</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body" id="printableReportArea">
+                <div style="text-align: center; border-bottom: 2px solid var(--border-color); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+                    <div style="font-size: 2rem;">🏛️</div>
+                    <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--primary);">BAUET</h2>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;">Office of the Academic Registrar & Institutional Auditor</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.35rem;">EXECUTIVE TERM ASSESSMENT REPORT &bull; FALL SEMESTER 2026</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem; margin-bottom: 1.5rem; background: var(--bg-main); padding: 1.25rem; border-radius: var(--radius-md);">
+                    <div>
+                        <div><strong>Total Enrolled Students:</strong> <span id="repStudents">0</span></div>
+                        <div><strong>Appointed Faculty:</strong> <span id="repTeachers">0</span></div>
+                        <div><strong>Active Academic Departments:</strong> <span id="repDepts">0</span></div>
+                    </div>
+                    <div>
+                        <div><strong>Institutional Pass Rate:</strong> <span id="repPassRate">0%</span></div>
+                        <div><strong>Campus Attendance Rate:</strong> <span id="repAttRate">0%</span></div>
+                        <div><strong>Fiscal Fee Recovery:</strong> <span id="repFeeRecovery">0%</span></div>
+                    </div>
+                </div>
+
+                <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--primary);">Departmental Distribution Summary</h4>
+                <div class="table-responsive" style="margin-bottom: 1.5rem;">
+                    <table class="data-table" style="font-size: 0.85rem;">
+                        <thead>
+                            <tr>
+                                <th>Dept Code</th>
+                                <th>Department Name</th>
+                                <th>Department Head</th>
+                                <th>Enrolled Students</th>
+                            </tr>
+                        </thead>
+                        <tbody id="senateDeptTbody"></tbody>
+                    </table>
+                </div>
+
+                <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    Certified accurate by the Office of the Controller of Examinations and Director of Financial Clearance. Generated automatically from verified system database transactions.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-sm" onclick="UMSApp.closeModal('senateReportModal')">Close</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Print Senate Document</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/admin.js"></script>
+    <script src="../js/reports.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AdminPortal.init('reports', 'Reports & Analytics');
+
+            // Initialize tab switcher
+            const tabs = document.querySelectorAll('.analytics-tab-btn');
+            tabs.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    const targetId = btn.dataset.tab;
+                    document.querySelectorAll('.tab-panel').forEach(panel => {
+                        panel.style.display = panel.id === targetId ? 'block' : 'none';
+                    });
+                });
+            });
+
+            // Populate Analytics & Render Vector Charts
+            loadAnalyticsData();
+        });
+
+        function loadAnalyticsData() {
+            // 1. Demographics
+            const stuStats = UMSReports.getStudentStats();
+            document.getElementById('kpiStudents').textContent = stuStats.total;
+
+            UMSReports.renderBarChart('chartDeptDistribution', stuStats.byDept, {
+                color: 'var(--primary)',
+                height: 220
+            });
+
+            UMSReports.renderDonutChart('chartGenderDistribution', stuStats.gender, {
+                size: 180,
+                strokeWidth: 26
+            });
+
+            UMSReports.renderBarChart('chartBatchDistribution', stuStats.byBatch, {
+                color: 'var(--secondary)',
+                height: 180
+            });
+
+            // 2. Academic Performance
+            const resStats = UMSReports.getResultStats();
+            document.getElementById('kpiPassRate').textContent = `${resStats.passRate}%`;
+
+            UMSReports.renderBarChart('chartGpaDistribution', resStats.distribution, {
+                color: 'var(--primary-light)',
+                height: 220
+            });
+
+            const passFailData = [{
+                label: 'Cleared (Passed)',
+                value: resStats.passed,
+                color: '#10b981'
+            }, {
+                label: 'Unsuccessful (Failed)',
+                value: resStats.failed,
+                color: '#ef4444'
+            }];
+            UMSReports.renderDonutChart('chartPassFailDonut', passFailData, {
+                size: 180,
+                strokeWidth: 26
+            });
+
+            UMSReports.renderBarChart('chartCourseScores', resStats.coursePerformance, {
+                color: 'var(--primary)',
+                maxVal: 100,
+                unit: '%',
+                height: 220
+            });
+
+            // 3. Attendance Analytics
+            const attStats = UMSReports.getAttendanceStats();
+            document.getElementById('kpiAttendance').textContent = `${attStats.overallRate}%`;
+            document.getElementById('overallAttBadge').textContent = `Campus Avg: ${attStats.overallRate}%`;
+            document.getElementById('totalClassesVal').textContent = attStats.totalClasses;
+            document.getElementById('totalPresentVal').textContent = attStats.totalPresent;
+            document.getElementById('totalAbsentVal').textContent = attStats.totalAbsent;
+
+            UMSReports.renderBarChart('chartCourseAttendance', attStats.courseWise, {
+                color: 'var(--secondary)',
+                maxVal: 100,
+                unit: '%',
+                height: 240
+            });
+
+            // 4. Financial Analytics
+            const feeStats = UMSReports.getFeeStats();
+            document.getElementById('kpiFeeRecovery').textContent = `${feeStats.recoveryRate}%`;
+            document.getElementById('kpiCollectedSub').textContent = `${UMSApp.formatCurrency(feeStats.totalCollected)} Collected`;
+
+            document.getElementById('finBilledTotal').textContent = UMSApp.formatCurrency(feeStats.totalInvoiced);
+            document.getElementById('finCollectedTotal').textContent = UMSApp.formatCurrency(feeStats.totalCollected);
+            document.getElementById('finDueTotal').textContent = UMSApp.formatCurrency(feeStats.totalDue);
+            document.getElementById('finProgressBar').style.width = `${feeStats.recoveryRate}%`;
+
+            UMSReports.renderDonutChart('chartFeeStatusDonut', feeStats.statusBreakdown, {
+                size: 180,
+                strokeWidth: 26
+            });
+        }
+
+        function openPrintableSenateReport() {
+            const stuStats = UMSReports.getStudentStats();
+            const resStats = UMSReports.getResultStats();
+            const attStats = UMSReports.getAttendanceStats();
+            const feeStats = UMSReports.getFeeStats();
+            const depts = UMSStorage.getData('departments');
+            const teachers = UMSStorage.getData('teachers');
+
+            document.getElementById('repStudents').textContent = stuStats.total;
+            document.getElementById('repTeachers').textContent = teachers.length;
+            document.getElementById('repDepts').textContent = depts.length;
+            document.getElementById('repPassRate').textContent = `${resStats.passRate}%`;
+            document.getElementById('repAttRate').textContent = `${attStats.overallRate}%`;
+            document.getElementById('repFeeRecovery').textContent = `${feeStats.recoveryRate}% (${UMSApp.formatCurrency(feeStats.totalCollected)})`;
+
+            const tbody = document.getElementById('senateDeptTbody');
+            tbody.innerHTML = depts.map(d => `
+        <tr>
+          <td><span class="dept-code">${d.code}</span></td>
+          <td><strong>${d.name}</strong></td>
+          <td>${d.head}</td>
+          <td><strong>${d.totalStudents}</strong> Students</td>
+        </tr>
+      `).join('');
+
+            UMSApp.openModal('senateReportModal');
+        }
+    </script>
+</body>
+
+</html>

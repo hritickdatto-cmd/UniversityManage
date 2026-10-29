@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notice Board | BAUET</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <aside class="app-sidebar" id="appSidebar"></aside>
+
+        <div class="app-main">
+            <header class="app-topbar" id="appTopbar"></header>
+
+            <main class="dashboard-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">University Notice Board & Circulars</h1>
+                        <p class="page-description">Official institutional announcements from the Registrar & Academic Faculties</p>
+                    </div>
+                </div>
+
+                
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-body" style="padding: 1rem 1.5rem;">
+                        <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 240px;">
+                                <input type="text" id="noticeSearch" class="form-control" placeholder="Search notices by keyword...">
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" id="categoryFilterGroup">
+                                <button class="btn btn-primary btn-sm category-btn active" data-cat="all">All</button>
+                                <button class="btn btn-outline btn-sm category-btn" data-cat="Examination">Examination</button>
+                                <button class="btn btn-outline btn-sm category-btn" data-cat="Academic">Academic</button>
+                                <button class="btn btn-outline btn-sm category-btn" data-cat="Events">Events</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="notices-container" id="noticesFullContainer" style="max-width: 100%;">
+                    
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="noticeDetailModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title" id="fullNoticeTitle">Notice Title</h3>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                    <span class="badge badge-info" id="fullNoticeCategory">Academic</span>
+                    <span class="badge badge-neutral" id="fullNoticeDate">Date</span>
+                </div>
+                <p id="fullNoticeContent" style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7;"></p>
+                <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem; font-size: 0.85rem; color: var(--text-muted);">
+                    Official Dispatch Authority: <strong id="fullNoticeAuthor">Registrar Office</strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline btn-sm" onclick="UMSApp.closeModal('noticeDetailModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    
+    <script type="module" src="../js/firebase.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/students.js"></script>
+    <script>
+        let activeCategory = 'all';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            StudentPortal.init('notices', 'Notice Board');
+            renderNotices();
+
+            document.getElementById('noticeSearch').addEventListener('input', renderNotices);
+
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.category-btn').forEach(b => {
+                        b.classList.remove('active', 'btn-primary');
+                        b.classList.add('btn-outline');
+                    });
+                    btn.classList.add('active', 'btn-primary');
+                    btn.classList.remove('btn-outline');
+                    activeCategory = btn.dataset.cat;
+                    renderNotices();
+                });
+            });
+        });
+
+        function renderNotices() {
+            const notices = UMSStorage.getData('notices');
+            const search = document.getElementById('noticeSearch').value.toLowerCase();
+            const container = document.getElementById('noticesFullContainer');
+
+            const filtered = notices.filter(n => {
+                const matchesCat = activeCategory === 'all' || n.category === activeCategory;
+                const matchesQuery = n.title.toLowerCase().includes(search) || n.content.toLowerCase().includes(search);
+                return matchesCat && matchesQuery;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+          <div class="card">
+            <div class="card-body text-center" style="padding: 3rem;">
+              <div class="empty-state-icon">📢</div>
+              <div class="empty-state-title">No Circulars Found</div>
+              <p class="empty-state-desc">There are no notices matching your active filter criteria.</p>
+            </div>
+          </div>
+        `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(n => {
+                const dateObj = new Date(n.date);
+                const day = dateObj.getDate();
+                const month = dateObj.toLocaleString('en-US', {
+                    month: 'short'
+                });
+
+                return `
+          <div class="notice-item" style="background: var(--bg-surface); margin-bottom: 1rem;">
+            <div class="notice-left">
+              <div class="notice-date-box">
+                <div class="notice-day">${day}</div>
+                <div class="notice-month">${month}</div>
+              </div>
+              <div>
+                <div class="notice-title-text">${n.title}</div>
+                <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.35rem;">
+                  <span class="notice-category-badge ${n.important ? 'important' : ''}">${n.category}</span>
+                  <span style="font-size: 0.75rem; color: var(--text-muted);">&bull; Issued by ${n.author}</span>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="showNoticeModal('${n.id}')">Read Full Notice</button>
+          </div>
+        `;
+            }).join('');
+        }
+
+        function showNoticeModal(id) {
+            const notice = UMSStorage.findData('notices', n => n.id === id);
+            if (!notice) return;
+
+            document.getElementById('fullNoticeTitle').textContent = notice.title;
+            document.getElementById('fullNoticeCategory').textContent = notice.category;
+            document.getElementById('fullNoticeDate').textContent = UMSApp.formatDate(notice.date);
+            document.getElementById('fullNoticeContent').textContent = notice.content;
+            document.getElementById('fullNoticeAuthor').textContent = notice.author;
+
+            UMSApp.openModal('noticeDetailModal');
+        }
+    </script>
+</body>
+
+</html>
